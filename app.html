@@ -12,7 +12,21 @@
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <div style="padding:40px; text-align:center; font-family: sans-serif; color:#8A8378;">Loading… if this stays here, scroll down for an error message.</div>
+</div>
+<div id="error-display" style="display:none; padding: 20px; font-family: monospace; font-size: 13px; color: #8A3E2E; background: #F4E2DE; white-space: pre-wrap; word-break: break-word;"></div>
+
+<script>
+  // Surfaces any JS error directly on the page, since mobile Safari
+  // has no easy dev console to check otherwise.
+  window.onerror = function (msg, url, line, col, error) {
+    var el = document.getElementById('error-display');
+    el.style.display = 'block';
+    el.textContent = 'Error: ' + msg + '\nLine: ' + line + ', Col: ' + col + (error && error.stack ? '\n\n' + error.stack : '');
+    return false;
+  };
+</script>
 
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -20,6 +34,13 @@
 
 <script type="text/babel" data-presets="react">
 const { useState, useRef } = React;
+
+/* ---------------------------------------------------------
+   FIT — connected, statically hosted prototype.
+   Calls the real live backend services directly (this page is a
+   normal website, so it doesn't hit the network restrictions of
+   an embedded chat artifact preview).
+--------------------------------------------------------- */
 
 const CATALOG_URL = "https://fit-catalog-service.onrender.com";
 const FIT_URL = "https://fit-service-v2.onrender.com";
