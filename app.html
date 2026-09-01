@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fit — Try it on, before you buy it</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400..600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #EDE6DE; font-family: 'Inter', sans-serif; }
+  @keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef } = React;
+
+const CATALOG_URL = "https://fit-catalog-service.onrender.com";
+const FIT_URL = "https://fit-service-v2.onrender.com";
+
+const OCCASIONS = ["Work", "Casual", "Date", "Evening"];
+const SEASONS = ["Spring", "Summer", "Fall", "Winter"];
+
+function Spinner({ color = "#20201F", size = 28 }) {
+  return (
+    <svg viewBox="0 0 32 32" width={size} height={size} style={{ animation: "spin .9s linear infinite" }}>
+      <circle cx="16" cy="16" r="13" stroke={color} strokeOpacity="0.25" strokeWidth="3" fill="none" />
+      <circle cx="16" cy="16" r="13" stroke={color} strokeWidth="3" fill="none" strokeDasharray="45 100" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TopBar({ title, onBack, step, totalSteps }) {
+  return (
+    <div style={{ padding: "18px 20px 10px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button
+          onClick={onBack}
+          style={{ visibility: onBack ? "visible" : "hidden", background: "none", border: "none", fontSize: 20, color: "#3B3A36", cursor: "pointer", padding: 0, width: 24 }}
+        >
+          ←
+        </button>
+        {step && (
+          <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#8A8378", letterSpacing: 1 }}>
+            {step} / {totalSteps}
+          </div>
+        )}
+        <div style={{ width: 24 }} />
+      </div>
+      {title && (
+        <h1 style={{ fontFamily: "Fraunces, serif", fontWeight: 500, fontSize: 26, color: "#20201F", marginTop: 10, marginBottom: 0, letterSpacing: -0.3 }}>
+          {title}
+        </h1>
+      )}
+    </div>
+  );
+}
+
+function PrimaryButton({ children, onClick, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{ width: "100%", padding: "16px", borderRadius: 14, border: "none", background: disabled ? "#D9CFC6" : "#20201F", color: disabled ? "#8A8378" : "#F0E1DA", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 15, cursor: disabled ? "default" : "pointer" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Chip({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, padding: "8px 14px", borderRadius: 999, border: active ? "1px solid #7A2E3A" : "1px solid #D9CFC6", background: active ? "#7A2E3A" : "transparent", color: active ? "#F0E1DA" : "#3B3A36", cursor: "pointer", whiteSpace: "nowrap" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Section({ label, children }) {
+  return (
+    <div style={{ marginBottom: 26 }}>
+      <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1.2, color: "#8A8378", marginBottom: 10, textTransform: "uppercase" }}>
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ErrorNote({ message }) {
+  if (!message) return null;
+  return (
+    <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "#F4E2DE", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#8A3E2E", lineHeight: 1.4 }}>
+      {message}
+    </div>
+  );
+}
+
+async function callFitService(photoFile, heightCm) {
+  const form = new FormData();
+  form.append("photo", photoFile);
+  form.append("height_cm", String(heightCm));
+  const res = await fetch(`${FIT_URL}/analyze-photo`, { method: "POST", body: form });
+  if (!res.ok) throw new Error(`Fit Service error (${res.status})`);
+  return res.json();
+}
+
+async function fetchCatalogProducts({ occasion, season }) {
+  const params = new URLSearchParams();
+  if (occasion) params.set("occasion", occasion.toLowerCase());
+  if (season) params.set("season", season.toLowerCase());
+  const res = await fetch(`${CATALOG_URL}/products?${params.toString()}`);
+  if (!res.ok) throw new Error(`Catalog Service error (${res.status})`);
+  return res.json();
+}
+
+function assembleOutfits(products) {
+  const dresses = products.filter((p) => p.category === "dress");
+  const tops = products.filter((p) => p.category === "top");
+  const bottoms = products.filter((p) => p.category === "bottom");
+  const shoes = products.filter((p) => p.category === "shoes");
+
+  const outfits = [];
+  const labels = ["Safe", "Balanced", "Statement"];
+
+  if (tops.length && bottoms.length && shoes.length) {
+    outfits.push({ label: labels[outfits.length], items: [tops[0], bottoms[0], shoes[0]] });
+  }
+  if (dresses.length && shoes.length) {
+    outfits.push({ label: labels[outfits.length], items: [dresses[0], shoes[0]] });
+  }
+  if (tops.length > 1 && bottoms.length > 1 && shoes.length) {
+    outfits.push({ label: labels[outfits.length], items: [tops[1] ?? tops[0], bottoms[1] ?? bottoms[0], shoes[0]] });
+  }
+
+  return outfits.slice(0, 3).map((o, i) => ({
+    ...o,
+    number: String(i + 1).padStart(2, "0"),
+    priceTotal: o.items.reduce((sum, it) => sum + it.price_amount, 0),
+    currency: o.items[0]?.price_currency ?? "EUR",
+  }));
+}
+
+function Welcome({ onStart }) {
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "50px 28px 32px", background: "linear-gradient(160deg, #7A2E3A 0%, #3B2024 100%)", color: "#F0E1DA" }}>
+      <div>
+        <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 3, opacity: 0.7 }}>FIT — LIVE</div>
+        <h1 style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", fontSize: 44, lineHeight: 1.05, margin: "18px 0 0" }}>
+          Try it on,<br />before you buy it.
+        </h1>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, lineHeight: 1.6, opacity: 0.85, marginTop: 18, maxWidth: 270 }}>
+          Connected to the real Fit and Catalog services. First request may take up to a minute while the free server wakes up.
+        </p>
+      </div>
+      <PrimaryButton onClick={onStart}>Start</PrimaryButton>
+    </div>
+  );
+}
+
+function UploadScreen({ photo, setPhoto, height, setHeight, onBack, onNext, analyzing, analyzeError, fileRef }) {
+  const handleFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) setPhoto(file);
+  };
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <TopBar title="Add a photo" onBack={onBack} step={1} totalSteps={3} />
+      <div style={{ padding: "8px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5 }}>
+          Head to shoes, facing forward, arms relaxed at your sides.
+        </p>
+        <div
+          onClick={() => !analyzing && fileRef.current && fileRef.current.click()}
+          style={{ marginTop: 14, flex: 1, minHeight: 260, borderRadius: 20, border: photo ? "none" : "1.5px dashed #C9B8A6", background: photo ? "transparent" : "#F0E1DA", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", position: "relative" }}
+        >
+          {photo ? (
+            <img src={URL.createObjectURL(photo)} alt="You" style={{ width: "100%", height: "100%", objectFit: "cover", filter: analyzing ? "brightness(0.5)" : "none" }} />
+          ) : (
+            <div style={{ textAlign: "center", color: "#8A6F63" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>＋</div>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500 }}>Tap to upload</div>
+            </div>
+          )}
+          {analyzing && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              <Spinner color="#F0E1DA" />
+              <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#F0E1DA" }}>analyzing (may take up to 60s)…</span>
+            </div>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1, color: "#8A8378", marginBottom: 8, textTransform: "uppercase" }}>
+            Your height (cm)
+          </div>
+          <input
+            type="number"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            placeholder="e.g. 165"
+            style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #D9CFC6", fontFamily: "Inter, sans-serif", fontSize: 15 }}
+          />
+        </div>
+        <ErrorNote message={analyzeError} />
+      </div>
+      <div style={{ padding: 20 }}>
+        <PrimaryButton onClick={onNext} disabled={!photo || !height || analyzing}>
+          {analyzing ? "Analyzing…" : "Continue"}
+        </PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
+function ProfileScreen({ occasion, setOccasion, season, setSeason, bodyType, onBack, onNext, loading, loadError }) {
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <TopBar title="A few details" onBack={onBack} step={2} totalSteps={3} />
+      <div style={{ padding: "8px 20px", flex: 1, overflowY: "auto" }}>
+        {bodyType && (
+          <div style={{ marginBottom: 20, padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", fontFamily: "Inter, sans-serif", fontSize: 13, color: "#3B3A36" }}>
+            Estimated body type: <strong>{bodyType.body_type}</strong> ({Math.round(bodyType.body_type_confidence * 100)}% confidence)
+          </div>
+        )}
+        <Section label="Occasion">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {OCCASIONS.map((o) => <Chip key={o} active={occasion === o} onClick={() => setOccasion(o)}>{o}</Chip>)}
+          </div>
+        </Section>
+        <Section label="Season">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {SEASONS.map((s) => <Chip key={s} active={season === s} onClick={() => setSeason(s)}>{s}</Chip>)}
+          </div>
+        </Section>
+        <ErrorNote message={loadError} />
+      </div>
+      <div style={{ padding: 20 }}>
+        <PrimaryButton onClick={onNext} disabled={loading}>
+          {loading ? "Fetching catalog…" : "Generate outfits"}
+        </PrimaryButton>
+      </div>
+    </div>
+  );
+}
+
+function Generating() {
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, background: "#20201F", color: "#F0E1DA" }}>
+      <Spinner color="#7C8C6E" size={48} />
+      <div style={{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontSize: 20 }}>Styling your fit…</div>
+      <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#B8AFA6" }}>querying live catalog</div>
+    </div>
+  );
+}
+
+function ResultsScreen({ outfits, onBack, onSelect, error }) {
+  if (error) {
+    return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <TopBar title="Something went wrong" onBack={onBack} />
+        <div style={{ padding: 20 }}><ErrorNote message={error} /></div>
+      </div>
+    );
+  }
+  if (outfits.length === 0) {
+    return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <TopBar title="No outfits found" onBack={onBack} />
+        <div style={{ padding: 20, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C" }}>
+          The live catalog didn't have enough matching pieces for this combination. Try a different occasion/season.
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <TopBar title="Your outfits" onBack={onBack} step={3} totalSteps={3} />
+      <div style={{ padding: "6px 20px 20px", display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+        {outfits.map((o) => (
+          <div key={o.label} onClick={() => onSelect(o)} style={{ borderRadius: 18, background: "#F0E1DA", padding: 16, cursor: "pointer" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1 }}>{o.number}</span>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#3B3A36" }}>
+                {o.priceTotal.toFixed(2)} {o.currency}
+              </span>
+            </div>
+            <div style={{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#20201F", marginTop: 2 }}>{o.label}</div>
+            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B655C", marginTop: 4, lineHeight: 1.4 }}>
+              {o.items.map((i) => i.name).join(" · ")}
+            </div>
+            <div style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, color: "#8A6F63", marginTop: 4 }}>
+              {[...new Set(o.items.map((i) => i.retailer_id))].join(" · ")}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DetailScreen({ outfit, onBack }) {
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <TopBar onBack={onBack} />
+      <div style={{ padding: "0 20px", flex: 1, overflowY: "auto" }}>
+        <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1 }}>
+          {outfit.number} — {outfit.label.toUpperCase()}
+        </span>
+        <h2 style={{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0 20px", color: "#20201F" }}>{outfit.label} outfit</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {outfit.items.map((it) => (
+            <div key={it.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", gap: 10 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#20201F" }}>{it.name}</div>
+                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A6F63", marginTop: 2 }}>{it.category} · {it.retailer_id}</div>
+                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#6B655C", marginTop: 4 }}>{it.price_amount} {it.price_currency}</div>
+              </div>
+              <a
+                href={it.affiliate_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: "#F0E1DA", background: "#20201F", padding: "8px 12px", borderRadius: 10, textDecoration: "none", whiteSpace: "nowrap" }}
+              >
+                Buy at {it.retailer_id} ↗
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FitConnected() {
+  const [screen, setScreen] = useState("welcome");
+  const [photo, setPhoto] = useState(null);
+  const [height, setHeight] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState(null);
+  const [bodyTypeResult, setBodyTypeResult] = useState(null);
+
+  const [occasion, setOccasion] = useState("Work");
+  const [season, setSeason] = useState("Fall");
+
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState(null);
+  const [outfits, setOutfits] = useState([]);
+  const [selectedOutfit, setSelectedOutfit] = useState(null);
+
+  const fileRef = useRef(null);
+
+  const analyzePhoto = async () => {
+    setAnalyzing(true);
+    setAnalyzeError(null);
+    try {
+      const result = await callFitService(photo, Number(height));
+      if (!result.detected) {
+        setAnalyzeError(result.message || "Could not detect a body in that photo.");
+        return;
+      }
+      setBodyTypeResult(result);
+      setScreen("profile");
+    } catch (err) {
+      setAnalyzeError(err.message + " — the free server may be waking up, try again in a moment.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const generateOutfits = async () => {
+    setCatalogLoading(true);
+    setCatalogError(null);
+    setScreen("generating");
+    try {
+      const data = await fetchCatalogProducts({ occasion, season });
+      const assembled = assembleOutfits(data.products);
+      setOutfits(assembled);
+      setScreen("results");
+    } catch (err) {
+      setCatalogError(err.message + " — the free server may be waking up, try again in a moment.");
+      setScreen("results");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <div style={{ width: 390, height: 780, background: "#FAF6F2", borderRadius: 40, border: "10px solid #20201F", overflow: "hidden", position: "relative", boxShadow: "0 30px 60px rgba(32,26,25,0.25)" }}>
+        <div style={{ height: "100%", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          {screen === "welcome" && <Welcome onStart={() => setScreen("upload")} />}
+          {screen === "upload" && (
+            <UploadScreen
+              photo={photo} setPhoto={setPhoto} height={height} setHeight={setHeight}
+              onBack={() => setScreen("welcome")} onNext={analyzePhoto}
+              analyzing={analyzing} analyzeError={analyzeError} fileRef={fileRef}
+            />
+          )}
+          {screen === "profile" && (
+            <ProfileScreen
+              occasion={occasion} setOccasion={setOccasion} season={season} setSeason={setSeason}
+              bodyType={bodyTypeResult} onBack={() => setScreen("upload")} onNext={generateOutfits}
+              loading={catalogLoading} loadError={catalogError}
+            />
+          )}
+          {screen === "generating" && <Generating />}
+          {screen === "results" && (
+            <ResultsScreen
+              outfits={outfits} error={catalogError} onBack={() => setScreen("profile")}
+              onSelect={(o) => { setSelectedOutfit(o); setScreen("detail"); }}
+            />
+          )}
+          {screen === "detail" && selectedOutfit && (
+            <DetailScreen outfit={selectedOutfit} onBack={() => setScreen("results")} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<FitConnected />);
+</script>
+</body>
+</html>
