@@ -36,6 +36,7 @@ const { useState, useRef } = React;
 
 const CATALOG_URL = "https://fit-catalog-service.onrender.com";
 const FIT_URL = "https://fit-service-v2.onrender.com";
+const STYLING_URL = "https://fit-styling-service.onrender.com";
 
 const OCCASIONS = ["Work", "Casual", "Date", "Evening"];
 const SEASONS = ["Spring", "Summer", "Fall", "Winter"];
@@ -171,6 +172,16 @@ async function fetchCatalogProducts(occasion, season) {
   return res.json();
 }
 
+async function fetchStyledOutfits(bodyType, occasion, season, budgetEur) {
+  const res = await fetch(STYLING_URL + "/recommend-outfits", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body_type: bodyType, occasion: occasion, season: season, budget_eur: budgetEur }),
+  });
+  if (!res.ok) throw new Error("Styling Service error (" + res.status + ")");
+  return res.json();
+}
+
 function assembleOutfits(products) {
   const dresses = products.filter(function (p) { return p.category === "dress"; });
   const tops = products.filter(function (p) { return p.category === "top"; });
@@ -296,11 +307,20 @@ function ProfileScreen(props) {
             })}
           </div>
         <//>
+        <${Section} label="Budget (EUR)">
+          <input
+            type="number"
+            value=${props.budget}
+            onChange=${function (e) { props.setBudget(e.target.value); }}
+            placeholder="e.g. 250"
+            style=${{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #D9CFC6", fontFamily: "Inter, sans-serif", fontSize: 15 }}
+          />
+        <//>
         <${ErrorNote} message=${props.loadError} />
       </div>
       <div style=${{ padding: 20 }}>
         <${PrimaryButton} onClick=${props.onNext} disabled=${props.loading}>
-          ${props.loading ? "Fetching catalog…" : "Generate outfits"}
+          ${props.loading ? "Styling your fit…" : "Generate outfits"}
         <//>
       </div>
     </div>
@@ -378,13 +398,15 @@ function DetailScreen(props) {
         <div style=${{ borderRadius: 20, overflow: "hidden", height: 280 }}>
           <${TryOnPreview} photo=${props.photo} items=${outfit.items} lowConfidence=${props.lowConfidence} />
         </div>
-        <div style=${{ fontFamily: "monospace", fontSize: 11, color: "#8A3E2E", marginTop: 6 }}>
-          DEBUG: photo prop is ${props.photo ? ("present (" + props.photo.name + ")") : "MISSING"}
-        </div>
         <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1, display: "block", marginTop: 16 }}>
           ${outfit.number} — ${outfit.label.toUpperCase()}
         </span>
         <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0 20px", color: "#20201F" }}>${outfit.label} outfit</h2>
+        ${outfit.why ? html`
+          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, marginTop: -8, marginBottom: 20 }}>
+            ${outfit.why}
+          </p>
+        ` : null}
         <div style=${{ display: "flex", flexDirection: "column", gap: 10 }}>
           ${outfit.items.map(function (it) {
             return html`
@@ -419,6 +441,7 @@ function FitConnected() {
 
   const [occasion, setOccasion] = useState("Work");
   const [season, setSeason] = useState("Fall");
+  const [budget, setBudget] = useState(250);
 
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState(null);
@@ -450,9 +473,8 @@ function FitConnected() {
     setCatalogError(null);
     setScreen("generating");
     try {
-      const data = await fetchCatalogProducts(occasion, season);
-      const assembled = assembleOutfits(data.products);
-      setOutfits(assembled);
+      const data = await fetchStyledOutfits(bodyTypeResult.body_type, occasion, season, Number(budget));
+      setOutfits(data.outfits || []);
       setScreen("results");
     } catch (err) {
       setCatalogError(err.message + " — the free server may be waking up, try again in a moment.");
@@ -474,6 +496,7 @@ function FitConnected() {
   } else if (screen === "profile") {
     screenEl = html`<${ProfileScreen}
       occasion=${occasion} setOccasion=${setOccasion} season=${season} setSeason=${setSeason}
+      budget=${budget} setBudget=${setBudget}
       bodyType=${bodyTypeResult} onBack=${function () { setScreen("upload"); }} onNext=${generateOutfits}
       loading=${catalogLoading} loadError=${catalogError}
     />`;
