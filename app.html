@@ -378,6 +378,9 @@ function DetailScreen(props) {
         <div style=${{ borderRadius: 20, overflow: "hidden", height: 280 }}>
           <${TryOnPreview} photo=${props.photo} items=${outfit.items} lowConfidence=${props.lowConfidence} />
         </div>
+        <div style=${{ fontFamily: "monospace", fontSize: 11, color: "#8A3E2E", marginTop: 6 }}>
+          DEBUG: photo prop is ${props.photo ? ("present (" + props.photo.name + ")") : "MISSING"}
+        </div>
         <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1, display: "block", marginTop: 16 }}>
           ${outfit.number} — ${outfit.label.toUpperCase()}
         </span>
