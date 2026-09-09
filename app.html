@@ -38,6 +38,42 @@ const CATALOG_URL = "https://fit-catalog-service.onrender.com";
 const FIT_URL = "https://fit-service-v2.onrender.com";
 const STYLING_URL = "https://fit-styling-service.onrender.com";
 
+function getDeviceId() {
+  let id = localStorage.getItem("fit_device_id");
+  if (!id) {
+    id = "device_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem("fit_device_id", id);
+  }
+  return id;
+}
+
+async function saveFavorite(outfit) {
+  const res = await fetch(CATALOG_URL + "/favorites", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      device_id: getDeviceId(),
+      outfit_label: outfit.label,
+      items: outfit.items,
+      price_total: outfit.priceTotal,
+    }),
+  });
+  if (!res.ok) throw new Error("Could not save favorite (" + res.status + ")");
+  return res.json();
+}
+
+async function fetchFavorites() {
+  const res = await fetch(CATALOG_URL + "/favorites?device_id=" + encodeURIComponent(getDeviceId()));
+  if (!res.ok) throw new Error("Could not load favorites (" + res.status + ")");
+  return res.json();
+}
+
+async function deleteFavoriteById(id) {
+  const res = await fetch(CATALOG_URL + "/favorites/" + id, { method: "DELETE" });
+  if (!res.ok) throw new Error("Could not delete favorite (" + res.status + ")");
+  return res.json();
+}
+
 const OCCASIONS = ["Work", "Casual", "Date", "Evening"];
 const SEASONS = ["Spring", "Summer", "Fall", "Winter"];
 
@@ -224,7 +260,8 @@ function Welcome(props) {
       </div>
       <div>
         <${PrimaryButton} onClick=${props.onStart}>Start<//>
-        <a href="./privacy.html" style=${{ display: "block", textAlign: "center", marginTop: 14, fontFamily: "Inter, sans-serif", fontSize: 12, color: "#F0E1DA", opacity: 0.7, textDecoration: "underline" }}>Privacy Policy</a>
+        <a href="#" onClick=${function (e) { e.preventDefault(); props.onViewFavorites(); }} style=${{ display: "block", textAlign: "center", marginTop: 14, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#F0E1DA", opacity: 0.85, textDecoration: "underline" }}>♡ My Favorites</a>
+        <a href="./privacy.html" style=${{ display: "block", textAlign: "center", marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 12, color: "#F0E1DA", opacity: 0.7, textDecoration: "underline" }}>Privacy Policy</a>
       </div>
     </div>
   `;
@@ -392,8 +429,63 @@ function ResultsScreen(props) {
   `;
 }
 
+function FavoritesScreen(props) {
+  return html`
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <${TopBar} title="Favorites" onBack=${props.onBack} />
+      <div style=${{ padding: "6px 20px 20px", flex: 1, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+        ${props.loading ? html`
+          <div style=${{ display: "flex", justifyContent: "center", padding: 40 }}><${Spinner} /></div>
+        ` : null}
+        <${ErrorNote} message=${props.error} />
+        ${!props.loading && !props.error && props.favorites.length === 0 ? html`
+          <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", padding: "20px 0" }}>
+            No saved outfits yet — tap ♡ Save on any outfit you like.
+          </div>
+        ` : null}
+        ${props.favorites.map(function (f) {
+          return html`
+            <div key=${f.id} style=${{ borderRadius: 18, background: "#F0E1DA", padding: 14 }}>
+              <div onClick=${function () { props.onSelect(f); }} style=${{ cursor: "pointer" }}>
+                <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#20201F" }}>${f.outfit_label}</div>
+                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#3B3A36" }}>${f.price_total}</span>
+                </div>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B655C", marginTop: 4 }}>
+                  ${f.items.map(function (i) { return i.name; }).join(" · ")}
+                </div>
+              </div>
+              <button
+                onClick=${function () { props.onDelete(f.id); }}
+                style=${{ marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A3E2E", background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}
+              >Remove</button>
+            </div>
+          `;
+        })}
+      </div>
+    </div>
+  `;
+}
+
 function DetailScreen(props) {
   const outfit = props.outfit;
+  const [saved, setSaved] = useState(!!props.alreadySaved);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  const handleSave = async function () {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await saveFavorite(outfit);
+      setSaved(true);
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
       <${TopBar} onBack=${props.onBack} />
@@ -404,9 +496,19 @@ function DetailScreen(props) {
         <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1, display: "block", marginTop: 16 }}>
           ${outfit.number} — ${outfit.label.toUpperCase()}
         </span>
-        <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0 20px", color: "#20201F" }}>${outfit.label} outfit</h2>
+        <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+          <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0", color: "#20201F" }}>${outfit.label} outfit</h2>
+          <button
+            onClick=${handleSave}
+            disabled=${saving || saved}
+            style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, padding: "8px 12px", borderRadius: 10, border: "1px solid #7A2E3A", background: saved ? "#7A2E3A" : "transparent", color: saved ? "#F0E1DA" : "#7A2E3A", cursor: saving || saved ? "default" : "pointer", whiteSpace: "nowrap" }}
+          >
+            ${saved ? "♥ Saved" : saving ? "Saving…" : "♡ Save"}
+          </button>
+        </div>
+        <${ErrorNote} message=${saveError} />
         ${outfit.why ? html`
-          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, marginTop: -8, marginBottom: 20 }}>
+          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, marginTop: 4, marginBottom: 20 }}>
             ${outfit.why}
           </p>
         ` : null}
@@ -451,7 +553,34 @@ function FitConnected() {
   const [outfits, setOutfits] = useState([]);
   const [selectedOutfit, setSelectedOutfit] = useState(null);
 
+  const [favorites, setFavorites] = useState([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [favoritesError, setFavoritesError] = useState(null);
+  const [viewingFavorite, setViewingFavorite] = useState(null);
+
   const fileRef = useRef(null);
+
+  const loadFavorites = async function () {
+    setFavoritesLoading(true);
+    setFavoritesError(null);
+    try {
+      const data = await fetchFavorites();
+      setFavorites(data.favorites || []);
+    } catch (err) {
+      setFavoritesError(err.message + " — the free server may be waking up, try again in a moment.");
+    } finally {
+      setFavoritesLoading(false);
+    }
+  };
+
+  const handleDeleteFavorite = async function (id) {
+    try {
+      await deleteFavoriteById(id);
+      setFavorites(favorites.filter(function (f) { return f.id !== id; }));
+    } catch (err) {
+      setFavoritesError(err.message);
+    }
+  };
 
   const analyzePhoto = async function () {
     setAnalyzing(true);
@@ -489,7 +618,7 @@ function FitConnected() {
 
   let screenEl = null;
   if (screen === "welcome") {
-    screenEl = html`<${Welcome} onStart=${function () { setScreen("upload"); }} />`;
+    screenEl = html`<${Welcome} onStart=${function () { setScreen("upload"); }} onViewFavorites=${function () { setScreen("favorites"); loadFavorites(); }} />`;
   } else if (screen === "upload") {
     screenEl = html`<${UploadScreen}
       photo=${photo} setPhoto=${setPhoto} height=${height} setHeight=${setHeight}
@@ -513,6 +642,25 @@ function FitConnected() {
     />`;
   } else if (screen === "detail" && selectedOutfit) {
     screenEl = html`<${DetailScreen} outfit=${selectedOutfit} photo=${photo} lowConfidence=${bodyTypeResult && bodyTypeResult.mode === "fallback_overlay"} onBack=${function () { setScreen("results"); }} />`;
+  } else if (screen === "favorites") {
+    screenEl = html`<${FavoritesScreen}
+      favorites=${favorites} loading=${favoritesLoading} error=${favoritesError}
+      onBack=${function () { setScreen("welcome"); }}
+      onDelete=${handleDeleteFavorite}
+      onSelect=${function (f) {
+        setViewingFavorite({
+          label: f.outfit_label,
+          number: "—",
+          items: f.items,
+          priceTotal: f.price_total,
+          currency: (f.items[0] && f.items[0].price_currency) || "EUR",
+          why: null,
+        });
+        setScreen("favorite-detail");
+      }}
+    />`;
+  } else if (screen === "favorite-detail" && viewingFavorite) {
+    screenEl = html`<${DetailScreen} outfit=${viewingFavorite} photo=${null} lowConfidence=${false} alreadySaved=${true} onBack=${function () { setScreen("favorites"); }} />`;
   }
 
   return html`
