@@ -4,9 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Fit — Try it on, before you buy it</title>
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Fit">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400..600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
   * { box-sizing: border-box; }
@@ -225,7 +222,10 @@ function Welcome(props) {
           Connected to the real Fit and Catalog services. First request may take up to a minute while the free server wakes up.
         </p>
       </div>
-      <${PrimaryButton} onClick=${props.onStart}>Start<//>
+      <div>
+        <${PrimaryButton} onClick=${props.onStart}>Start<//>
+        <a href="./privacy.html" style=${{ display: "block", textAlign: "center", marginTop: 14, fontFamily: "Inter, sans-serif", fontSize: 12, color: "#F0E1DA", opacity: 0.7, textDecoration: "underline" }}>Privacy Policy</a>
+      </div>
     </div>
   `;
 }
