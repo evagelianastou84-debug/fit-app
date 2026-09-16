@@ -35,7 +35,9 @@
 <script type="module">
 import htm from 'https://unpkg.com/htm?module';
 const html = htm.bind(React.createElement);
-const { useState, useRef } = React;
+const { useState, useRef, useEffect } = React;
+
+const TRYON_URL = "https://p1fl5g9xdjlyti-8000.proxy.runpod.net";
 
 const CATALOG_URL = "https://fit-catalog-service.onrender.com";
 const FIT_URL = "https://fit-service-v2.onrender.com";
