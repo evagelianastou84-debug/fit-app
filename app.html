@@ -101,26 +101,59 @@ function colorToHex(colorName) {
 function TryOnPreview(props) {
   const photo = props.photo;
   const items = props.items;
-  const lowConfidence = props.lowConfidence;
+
+  const [resultUrl, setResultUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!photo || !items || items.length === 0) return;
+
+    const garmentItem = items.find(function (i) { return i.image_url; });
+    if (!garmentItem) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setResultUrl(null);
+
+    const categoryMap = { top: "tops", bottom: "bottoms", dress: "one-pieces" };
+    const form = new FormData();
+    form.append("person", photo);
+    form.append("garment_url", garmentItem.image_url);
+    form.append("category", categoryMap[garmentItem.category] || "tops");
+
+    fetch(`${TRYON_URL}/tryon`, { method: "POST", body: form })
+      .then(function (res) {
+        if (!res.ok) throw new Error("Try-on failed");
+        return res.blob();
+      })
+      .then(function (blob) {
+        if (!cancelled) setResultUrl(URL.createObjectURL(blob));
+      })
+      .catch(function (err) {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(function () {
+        if (!cancelled) setLoading(false);
+      });
+
+    return function () { cancelled = true; };
+  }, [photo, items]);
 
   if (!photo) {
-    return html`<div style=${{ width: "100%", height: "100%", background: "#E3D5CC" }} />`;
+    return React.createElement("div", { style: { width: "100%", height: "100%", background: "#E3D5CC" } });
   }
 
-  const topItem = items.find(function (i) { return i.category === "top" || i.category === "dress"; });
-  const bottomItem = items.find(function (i) { return i.category === "bottom" || i.category === "dress"; });
-  const shoesItem = items.find(function (i) { return i.category === "shoes"; });
+  if (loading) {
+    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#E3D5CC" } }, "Generating...");
+  }
 
-  const opacity = lowConfidence ? 0.4 : 0.68;
+  if (resultUrl) {
+    return React.createElement("img", { src: resultUrl, alt: "Try-on result", style: { width: "100%", height: "100%", objectFit: "cover", display: "block" } });
+  }
 
-  return html`
-    <div style=${{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
-      <img src=${URL.createObjectURL(photo)} alt="You" style=${{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-      ${topItem ? html`<div style=${{ position: "absolute", left: "22%", top: "22%", width: "56%", height: topItem.category === "dress" ? "62%" : "32%", background: colorToHex(topItem.color), opacity: opacity, mixBlendMode: "multiply", borderRadius: "10% 10% 6% 6%" }} />` : null}
-      ${bottomItem && bottomItem.category !== "dress" ? html`<div style=${{ position: "absolute", left: "26%", top: "55%", width: "48%", height: "36%", background: colorToHex(bottomItem.color), opacity: opacity - 0.05, mixBlendMode: "multiply", borderRadius: "4% 4% 8% 8%" }} />` : null}
-      ${shoesItem ? html`<div style=${{ position: "absolute", left: "24%", top: "90%", width: "52%", height: "6%", background: colorToHex(shoesItem.color), opacity: opacity + 0.05, mixBlendMode: "multiply", borderRadius: "40%" }} />` : null}
-    </div>
-  `;
+  return React.createElement("img", { src: URL.createObjectURL(photo), alt: "You", style: { width: "100%", height: "100%", objectFit: "cover", display: "block" } });
 }
 
 function Spinner(props) {
