@@ -95,10 +95,16 @@ function colorToHex(colorName) {
   return COLOR_HEX[key] || "#8A8378";
 }
 
-/* Calls the self-hosted FASHN VTON API with the user's photo and one
-   garment image. Only the first item in `items` that has an image_url
-   is tried on today — combining multiple garments into one image is
-   a planned improvement, not yet built. */
+/* Calls the self-hosted FASHN VTON API with the user's photo, chaining
+   through every garment in `items` that has an image_url and is a
+   category the model supports (top/bottom/dress) — the result of each
+   step becomes the "person" photo for the next, so several garments
+   end up layered in one final image. Shoes and other categories are
+   not supported by the model and are skipped here; they still show
+   as text in the outfit list. */
+const TRYON_CATEGORY_MAP = { top: "tops", bottom: "bottoms", dress: "one-pieces" };
+const TRYON_CATEGORY_ORDER = ["dress", "top", "bottom"];
+
 function TryOnPreview(props) {
   const photo = props.photo;
   const items = props.items;
@@ -110,25 +116,32 @@ function TryOnPreview(props) {
   useEffect(() => {
     if (!photo || !items || items.length === 0) return;
 
-    const garmentItem = items.find(function (i) { return i.image_url; });
-    if (!garmentItem) return;
+    const chainItems = items
+      .filter(function (i) { return i.image_url && TRYON_CATEGORY_MAP[i.category]; })
+      .sort(function (a, b) { return TRYON_CATEGORY_ORDER.indexOf(a.category) - TRYON_CATEGORY_ORDER.indexOf(b.category); });
+
+    if (chainItems.length === 0) return;
 
     let cancelled = false;
     setLoading(true);
     setError(null);
     setResultUrl(null);
 
-    const categoryMap = { top: "tops", bottom: "bottoms", dress: "one-pieces" };
-    const form = new FormData();
-    form.append("person", photo);
-    form.append("garment_url", garmentItem.image_url);
-    form.append("category", categoryMap[garmentItem.category] || "tops");
+    async function runChain() {
+      let personBlob = photo;
+      for (const item of chainItems) {
+        const form = new FormData();
+        form.append("person", personBlob, "person.png");
+        form.append("garment_url", item.image_url);
+        form.append("category", TRYON_CATEGORY_MAP[item.category]);
+        const res = await fetch(`${TRYON_URL}/tryon`, { method: "POST", body: form });
+        if (!res.ok) throw new Error("Try-on failed on " + item.name);
+        personBlob = await res.blob();
+      }
+      return personBlob;
+    }
 
-    fetch(`${TRYON_URL}/tryon`, { method: "POST", body: form })
-      .then(function (res) {
-        if (!res.ok) throw new Error("Try-on failed");
-        return res.blob();
-      })
+    runChain()
       .then(function (blob) {
         if (!cancelled) setResultUrl(URL.createObjectURL(blob));
       })
@@ -141,7 +154,7 @@ function TryOnPreview(props) {
 
     return function () { cancelled = true; };
   }, [photo, items]);
-
+οι
   if (!photo) {
     return React.createElement("div", { style: { width: "100%", height: "100%", background: "#E3D5CC" } });
   }
@@ -760,7 +773,7 @@ function FitConnected() {
       setBrowseCategory(BUILD_ORDER[nextStep]);
     } else {
       const outfit = {
-        label: "Your outfit",
+        label: "Custom",
         number: "—",
         items: items,
         priceTotal: priceTotalOf(items),
