@@ -174,15 +174,15 @@ function TryOnPreview(props) {
   return React.createElement("img", { src: URL.createObjectURL(photo), alt: "You", style: { width: "100%", height: "100%", objectFit: "contain", display: "block" } });
 }
 
-/* Lightweight, non-network preview for list cards — just the item's
-   photo or a color swatch, so browsing the outfit list doesn't
-   trigger a real try-on call for every card. */
+/* Lightweight, non-network preview for list cards — just the user's
+   own photo (or a color swatch if no photo yet), so browsing the
+   outfit list doesn't trigger a real try-on call for every card. */
 function ListPreviewSwatch(props) {
-  const items = props.items || [];
-  const swatchItem = items.find(function (i) { return i.image_url; }) || items[0];
-  if (swatchItem && swatchItem.image_url) {
-    return React.createElement("img", { src: swatchItem.image_url, alt: swatchItem.name, style: { width: "100%", height: "100%", objectFit: "cover", display: "block" } });
+  if (props.photo) {
+    return React.createElement("img", { src: URL.createObjectURL(props.photo), alt: "You", style: { width: "100%", height: "100%", objectFit: "cover", display: "block" } });
   }
+  const items = props.items || [];
+  const swatchItem = items[0];
   const bg = swatchItem ? colorToHex(swatchItem.color) : "#E3D5CC";
   return React.createElement("div", { style: { width: "100%", height: "100%", background: bg } });
 }
@@ -465,7 +465,7 @@ function ResultsScreen(props) {
           return html`
             <div key=${o.label} onClick=${function () { props.onSelect(o); }} style=${{ display: "flex", gap: 12, borderRadius: 18, background: "#F0E1DA", padding: 14, cursor: "pointer" }}>
               <div style=${{ width: 72, height: 96, borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>
-                <${ListPreviewSwatch} items=${o.items} />
+                <${ListPreviewSwatch} photo=${props.photo} items=${o.items} />
               </div>
               <div style=${{ flex: 1, minWidth: 0 }}>
                 <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
