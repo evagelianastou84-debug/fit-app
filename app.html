@@ -661,6 +661,7 @@ function FitConnected() {
   const [browseStep, setBrowseStep] = useState(0);
   const [swapTarget, setSwapTarget] = useState(null); // { category, previousScreen }
   const BUILD_ORDER = ["top", "bottom", "shoes"];
+  const [buildOwnPending, setBuildOwnPending] = useState(false);
 
   const fileRef = useRef(null);
 
@@ -686,7 +687,15 @@ function FitConnected() {
     }
   };
 
-  const analyzePhoto = async function () {
+    const analyzePhoto = async function () {
+    if (buildOwnPending) {
+      setBuildOwnPending(false);
+      setCustomItems([]);
+      setBrowseStep(0);
+      setBrowseCategory(BUILD_ORDER[0]);
+      setScreen("build-browse");
+      return;
+    }
     setAnalyzing(true);
     setAnalyzeError(null);
     try {
@@ -721,12 +730,18 @@ function FitConnected() {
   };
 
   // --- Build your own ---
-  const startBuildOwn = function () {
+    const startBuildOwn = function () {
+    if (!photo) {
+      setBuildOwnPending(true);
+      setScreen("upload");
+      return;
+    }
     setCustomItems([]);
     setBrowseStep(0);
     setBrowseCategory(BUILD_ORDER[0]);
     setScreen("build-browse");
   };
+
 
   const handleBuildPick = function (product) {
     const next = customItems.filter(function (it) { return it.category !== product.category; }).concat([product]);
