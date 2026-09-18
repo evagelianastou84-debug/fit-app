@@ -154,7 +154,7 @@ function TryOnPreview(props) {
 
     return function () { cancelled = true; };
   }, [photo, items]);
-οι
+
   if (!photo) {
     return React.createElement("div", { style: { width: "100%", height: "100%", background: "#E3D5CC" } });
   }
@@ -700,7 +700,7 @@ function FitConnected() {
     }
   };
 
-    const analyzePhoto = async function () {
+  const analyzePhoto = async function () {
     if (buildOwnPending) {
       setBuildOwnPending(false);
       setCustomItems([]);
@@ -743,7 +743,7 @@ function FitConnected() {
   };
 
   // --- Build your own ---
-    const startBuildOwn = function () {
+  const startBuildOwn = function () {
     if (!photo) {
       setBuildOwnPending(true);
       setScreen("upload");
@@ -754,7 +754,6 @@ function FitConnected() {
     setBrowseCategory(BUILD_ORDER[0]);
     setScreen("build-browse");
   };
-
 
   const handleBuildPick = function (product) {
     const next = customItems.filter(function (it) { return it.category !== product.category; }).concat([product]);
