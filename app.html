@@ -397,4 +397,484 @@ function ProfileScreen(props) {
         <${PrimaryButton} onClick=${props.onNext} disabled=${props.loading}>
           ${props.loading ? "Styling your fit…" : "Generate outfits"}
         <//>
-      
+      </div>
+    </div>
+  `;
+}
+
+function Generating() {
+  return html`
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, background: "#20201F", color: "#F0E1DA" }}>
+      <${Spinner} color="#7C8C6E" size=${48} />
+      <div style=${{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontSize: 20 }}>Styling your fit…</div>
+      <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#B8AFA6" }}>querying live catalog</div>
+    </div>
+  `;
+}
+
+function ResultsScreen(props) {
+  if (props.error) {
+    return html`
+      <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <${TopBar} title="Something went wrong" onBack=${props.onBack} />
+        <div style=${{ padding: 20 }}><${ErrorNote} message=${props.error} /></div>
+      </div>
+    `;
+  }
+  if (props.outfits.length === 0) {
+    return html`
+      <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <${TopBar} title="No outfits found" onBack=${props.onBack} />
+        <div style=${{ padding: 20, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C" }}>
+          The live catalog didn't have enough matching pieces for this combination. Try a different occasion/season.
+        </div>
+      </div>
+    `;
+  }
+  return html`
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <${TopBar} title="Your outfits" onBack=${props.onBack} step=${3} totalSteps=${3} />
+      <div style=${{ padding: "6px 20px 20px", display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+        ${props.outfits.map(function (o) {
+          return html`
+            <div key=${o.label} onClick=${function () { props.onSelect(o); }} style=${{ display: "flex", gap: 12, borderRadius: 18, background: "#F0E1DA", padding: 14, cursor: "pointer" }}>
+              <div style=${{ width: 72, height: 96, borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>
+                <${TryOnPreview} photo=${props.photo} items=${o.items} lowConfidence=${props.lowConfidence} />
+              </div>
+              <div style=${{ flex: 1, minWidth: 0 }}>
+                <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1 }}>${o.number}</span>
+                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#3B3A36" }}>
+                    ${o.priceTotal.toFixed(2)} ${o.currency}
+                  </span>
+                </div>
+                <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#20201F", marginTop: 2 }}>${o.label}</div>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B655C", marginTop: 4, lineHeight: 1.4 }}>
+                  ${o.items.map(function (i) { return i.name; }).join(" · ")}
+                </div>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 10.5, color: "#8A6F63", marginTop: 4 }}>
+                  ${Array.from(new Set(o.items.map(function (i) { return i.retailer_id; }))).join(" · ")}
+                </div>
+              </div>
+            </div>
+          `;
+        })}
+      </div>
+      <div style=${{ padding: "0 20px 20px" }}>
+        <${SecondaryButton} onClick=${props.onBuildOwn}>Build your own instead<//>
+      </div>
+    </div>
+  `;
+}
+
+function FavoritesScreen(props) {
+  return html`
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <${TopBar} title="Favorites" onBack=${props.onBack} />
+      <div style=${{ padding: "6px 20px 20px", flex: 1, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
+        ${props.loading ? html`
+          <div style=${{ display: "flex", justifyContent: "center", padding: 40 }}><${Spinner} /></div>
+        ` : null}
+        <${ErrorNote} message=${props.error} />
+        ${!props.loading && !props.error && props.favorites.length === 0 ? html`
+          <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", padding: "20px 0" }}>
+            No saved outfits yet — tap ♡ Save on any outfit you like.
+          </div>
+        ` : null}
+        ${props.favorites.map(function (f) {
+          return html`
+            <div key=${f.id} style=${{ borderRadius: 18, background: "#F0E1DA", padding: 14 }}>
+              <div onClick=${function () { props.onSelect(f); }} style=${{ cursor: "pointer" }}>
+                <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#20201F" }}>${f.outfit_label}</div>
+                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#3B3A36" }}>${f.price_total}</span>
+                </div>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B655C", marginTop: 4 }}>
+                  ${f.items.map(function (i) { return i.name; }).join(" · ")}
+                </div>
+              </div>
+              <button
+                onClick=${function () { props.onDelete(f.id); }}
+                style=${{ marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A3E2E", background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}
+              >Remove</button>
+            </div>
+          `;
+        })}
+      </div>
+    </div>
+  `;
+}
+
+/* Lets the person browse products of one category and pick one —
+   used both for "build your own outfit" and for swapping a single
+   piece inside an existing outfit. */
+function CategoryBrowseScreen(props) {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(function () {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchCatalogProducts(null, null, props.category)
+      .then(function (data) { if (!cancelled) setProducts(data.products || []); })
+      .catch(function (err) { if (!cancelled) setError(err.message + " — the free server may be waking up, try again in a moment."); })
+      .finally(function () { if (!cancelled) setLoading(false); });
+    return function () { cancelled = true; };
+  }, [props.category]);
+
+  return html`
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <${TopBar} title=${props.title} onBack=${props.onBack} step=${props.step} totalSteps=${props.totalSteps} />
+      <div style=${{ padding: "6px 20px 20px", flex: 1, overflowY: "auto" }}>
+        ${loading ? html`<div style=${{ display: "flex", justifyContent: "center", padding: 40 }}><${Spinner} /></div>` : null}
+        <${ErrorNote} message=${error} />
+        <div style=${{ display: "flex", flexDirection: "column", gap: 10 }}>
+          ${products.map(function (p) {
+            return html`
+              <div key=${p.id} onClick=${function () { props.onSelect(p); }} style=${{ display: "flex", gap: 12, alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", cursor: "pointer" }}>
+                <div style=${{ width: 44, height: 44, borderRadius: 8, flexShrink: 0, overflow: "hidden", background: colorToHex(p.color) }}>
+                  ${p.image_url ? html`<img src=${p.image_url} alt=${p.name} style=${{ width: "100%", height: "100%", objectFit: "cover" }} />` : null}
+                </div>
+                <div style=${{ flex: 1, minWidth: 0 }}>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#20201F" }}>${p.name}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A6F63", marginTop: 2 }}>${p.retailer_id} · ${p.price_amount} ${p.price_currency}</div>
+                </div>
+              </div>
+            `;
+          })}
+        </div>
+      </div>
+      ${props.onSkip ? html`
+        <div style=${{ padding: "0 20px 20px" }}>
+          <${SecondaryButton} onClick=${props.onSkip}>Skip this piece<//>
+        </div>
+      ` : null}
+    </div>
+  `;
+}
+
+function DetailScreen(props) {
+  const outfit = props.outfit;
+  const [saved, setSaved] = useState(!!props.alreadySaved);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  const handleSave = async function () {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await saveFavorite(outfit);
+      setSaved(true);
+    } catch (err) {
+      setSaveError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return html`
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <${TopBar} onBack=${props.onBack} />
+      <div style=${{ padding: "0 20px", flex: 1, overflowY: "auto" }}>
+        <div style=${{ borderRadius: 20, overflow: "hidden", height: 280 }}>
+          <${TryOnPreview} photo=${props.photo} items=${outfit.items} lowConfidence=${props.lowConfidence} />
+        </div>
+        <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1, display: "block", marginTop: 16 }}>
+          ${outfit.number} — ${outfit.label.toUpperCase()}
+        </span>
+        <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+          <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0", color: "#20201F" }}>${outfit.label} outfit</h2>
+          <button
+            onClick=${handleSave}
+            disabled=${saving || saved}
+            style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, padding: "8px 12px", borderRadius: 10, border: "1px solid #7A2E3A", background: saved ? "#7A2E3A" : "transparent", color: saved ? "#F0E1DA" : "#7A2E3A", cursor: saving || saved ? "default" : "pointer", whiteSpace: "nowrap" }}
+          >
+            ${saved ? "♥ Saved" : saving ? "Saving…" : "♡ Save"}
+          </button>
+        </div>
+        <${ErrorNote} message=${saveError} />
+        ${outfit.why ? html`
+          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, marginTop: 4, marginBottom: 20 }}>
+            ${outfit.why}
+          </p>
+        ` : null}
+        <div style=${{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+          ${outfit.items.map(function (it) {
+            return html`
+              <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", gap: 10 }}>
+                <div onClick=${props.onSwapItem ? function () { props.onSwapItem(it); } : null} style=${{ minWidth: 0, cursor: props.onSwapItem ? "pointer" : "default" }}>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#20201F" }}>
+                    ${it.name} ${props.onSwapItem ? html`<span style=${{ fontSize: 11, color: "#8A6F63", textDecoration: "underline", marginLeft: 6 }}>swap</span>` : null}
+                  </div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A6F63", marginTop: 2 }}>${it.category} · ${it.retailer_id}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#6B655C", marginTop: 4 }}>${it.price_amount} ${it.price_currency}</div>
+                </div>
+                <a
+                  href=${it.affiliate_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style=${{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: "#F0E1DA", background: "#20201F", padding: "8px 12px", borderRadius: 10, textDecoration: "none", whiteSpace: "nowrap" }}
+                >Buy at ${it.retailer_id} ↗</a>
+              </div>
+            `;
+          })}
+        </div>
+        ${props.onAddCategory ? html`
+          <div style=${{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+            ${props.missingCategories.map(function (cat) {
+              return html`<${SecondaryButton} key=${cat} onClick=${function () { props.onAddCategory(cat); }}>+ Add ${CATEGORY_LABELS[cat] || cat}<//>`;
+            })}
+          </div>
+        ` : null}
+      </div>
+    </div>
+  `;
+}
+
+function FitConnected() {
+  const [screen, setScreen] = useState("welcome");
+  const [photo, setPhoto] = useState(null);
+  const [height, setHeight] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState(null);
+  const [bodyTypeResult, setBodyTypeResult] = useState(null);
+
+  const [occasion, setOccasion] = useState("Work");
+  const [season, setSeason] = useState("Fall");
+  const [budget, setBudget] = useState(250);
+
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState(null);
+  const [outfits, setOutfits] = useState([]);
+  const [selectedOutfit, setSelectedOutfit] = useState(null);
+
+  const [favorites, setFavorites] = useState([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [favoritesError, setFavoritesError] = useState(null);
+  const [viewingFavorite, setViewingFavorite] = useState(null);
+
+  // "build your own" / swap state
+  const [customItems, setCustomItems] = useState([]); // items picked so far
+  const [browseCategory, setBrowseCategory] = useState(null); // category currently being browsed
+  const [browseStep, setBrowseStep] = useState(0);
+  const [swapTarget, setSwapTarget] = useState(null); // { category, previousScreen }
+  const BUILD_ORDER = ["top", "bottom", "shoes"];
+
+  const fileRef = useRef(null);
+
+  const loadFavorites = async function () {
+    setFavoritesLoading(true);
+    setFavoritesError(null);
+    try {
+      const data = await fetchFavorites();
+      setFavorites(data.favorites || []);
+    } catch (err) {
+      setFavoritesError(err.message + " — the free server may be waking up, try again in a moment.");
+    } finally {
+      setFavoritesLoading(false);
+    }
+  };
+
+  const handleDeleteFavorite = async function (id) {
+    try {
+      await deleteFavoriteById(id);
+      setFavorites(favorites.filter(function (f) { return f.id !== id; }));
+    } catch (err) {
+      setFavoritesError(err.message);
+    }
+  };
+
+  const analyzePhoto = async function () {
+    setAnalyzing(true);
+    setAnalyzeError(null);
+    try {
+      const result = await callFitService(photo, Number(height));
+      if (!result.detected) {
+        setAnalyzeError(result.message || "Could not detect a body in that photo.");
+        return;
+      }
+      setBodyTypeResult(result);
+      setScreen("profile");
+    } catch (err) {
+      setAnalyzeError(err.message + " — the free server may be waking up, try again in a moment.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const generateOutfits = async function () {
+    setCatalogLoading(true);
+    setCatalogError(null);
+    setScreen("generating");
+    try {
+      const data = await fetchStyledOutfits(bodyTypeResult.body_type, occasion, season, Number(budget));
+      setOutfits(data.outfits || []);
+      setScreen("results");
+    } catch (err) {
+      setCatalogError(err.message + " — the free server may be waking up, try again in a moment.");
+      setScreen("results");
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
+
+  // --- Build your own ---
+  const startBuildOwn = function () {
+    setCustomItems([]);
+    setBrowseStep(0);
+    setBrowseCategory(BUILD_ORDER[0]);
+    setScreen("build-browse");
+  };
+
+  const handleBuildPick = function (product) {
+    const next = customItems.filter(function (it) { return it.category !== product.category; }).concat([product]);
+    setCustomItems(next);
+    advanceBuild(next);
+  };
+
+  const handleBuildSkip = function () {
+    advanceBuild(customItems);
+  };
+
+  const advanceBuild = function (items) {
+    const nextStep = browseStep + 1;
+    if (nextStep < BUILD_ORDER.length) {
+      setBrowseStep(nextStep);
+      setBrowseCategory(BUILD_ORDER[nextStep]);
+    } else {
+      const outfit = {
+        label: "Your outfit",
+        number: "—",
+        items: items,
+        priceTotal: priceTotalOf(items),
+        currency: currencyOf(items),
+        why: null,
+      };
+      setSelectedOutfit(outfit);
+      setScreen("detail");
+    }
+  };
+
+  // --- Swap a single piece inside whichever outfit is on screen ---
+  const startSwap = function (item) {
+    setSwapTarget({ category: item.category, forFavorite: screen === "favorite-detail" });
+    setBrowseCategory(item.category);
+    setScreen("swap-browse");
+  };
+
+  const handleSwapPick = function (product) {
+    const base = swapTarget.forFavorite ? viewingFavorite : selectedOutfit;
+    const newItems = base.items.filter(function (it) { return it.category !== product.category; }).concat([product]);
+    const updated = Object.assign({}, base, { items: newItems, priceTotal: priceTotalOf(newItems), currency: currencyOf(newItems) });
+    if (swapTarget.forFavorite) { setViewingFavorite(updated); } else { setSelectedOutfit(updated); }
+    setSwapTarget(null);
+    setScreen(swapTarget.forFavorite ? "favorite-detail" : "detail");
+  };
+
+  const addCategoryToOutfit = function (category) {
+    setSwapTarget({ category: category, forFavorite: screen === "favorite-detail" });
+    setBrowseCategory(category);
+    setScreen("swap-browse");
+  };
+
+  const missingCategoriesFor = function (outfit) {
+    if (!outfit) return [];
+    const has = new Set(outfit.items.map(function (it) { return it.category; }));
+    if (has.has("dress")) return has.has("shoes") ? [] : ["shoes"];
+    return BUILD_ORDER.filter(function (c) { return !has.has(c); });
+  };
+
+  let screenEl = null;
+  if (screen === "welcome") {
+    screenEl = html`<${Welcome} onStart=${function () { setScreen("upload"); }} onBuildOwn=${startBuildOwn} onViewFavorites=${function () { setScreen("favorites"); loadFavorites(); }} />`;
+  } else if (screen === "upload") {
+    screenEl = html`<${UploadScreen}
+      photo=${photo} setPhoto=${setPhoto} height=${height} setHeight=${setHeight}
+      onBack=${function () { setScreen("welcome"); }} onNext=${analyzePhoto}
+      analyzing=${analyzing} analyzeError=${analyzeError} fileRef=${fileRef}
+    />`;
+  } else if (screen === "profile") {
+    screenEl = html`<${ProfileScreen}
+      occasion=${occasion} setOccasion=${setOccasion} season=${season} setSeason=${setSeason}
+      budget=${budget} setBudget=${setBudget}
+      bodyType=${bodyTypeResult} onBack=${function () { setScreen("upload"); }} onNext=${generateOutfits}
+      loading=${catalogLoading} loadError=${catalogError}
+    />`;
+  } else if (screen === "generating") {
+    screenEl = html`<${Generating} />`;
+  } else if (screen === "results") {
+    screenEl = html`<${ResultsScreen}
+      outfits=${outfits} error=${catalogError} onBack=${function () { setScreen("profile"); }}
+      photo=${photo} lowConfidence=${bodyTypeResult && bodyTypeResult.mode === "fallback_overlay"}
+      onSelect=${function (o) { setSelectedOutfit(o); setScreen("detail"); }}
+      onBuildOwn=${startBuildOwn}
+    />`;
+  } else if (screen === "build-browse") {
+    screenEl = html`<${CategoryBrowseScreen}
+      category=${browseCategory}
+      title=${"Pick a " + (CATEGORY_LABELS[browseCategory] || browseCategory).toLowerCase()}
+      step=${browseStep + 1} totalSteps=${BUILD_ORDER.length}
+      onBack=${function () { setScreen(photo ? "results" : "welcome"); }}
+      onSelect=${handleBuildPick}
+      onSkip=${handleBuildSkip}
+    />`;
+  } else if (screen === "swap-browse" && swapTarget) {
+    screenEl = html`<${CategoryBrowseScreen}
+      category=${swapTarget.category}
+      title=${"Choose a " + (CATEGORY_LABELS[swapTarget.category] || swapTarget.category).toLowerCase()}
+      onBack=${function () { setScreen(swapTarget.forFavorite ? "favorite-detail" : "detail"); setSwapTarget(null); }}
+      onSelect=${handleSwapPick}
+    />`;
+  } else if (screen === "detail" && selectedOutfit) {
+    screenEl = html`<${DetailScreen}
+      outfit=${selectedOutfit} photo=${photo} lowConfidence=${bodyTypeResult && bodyTypeResult.mode === "fallback_overlay"}
+      onBack=${function () { setScreen(outfits.length ? "results" : "welcome"); }}
+      onSwapItem=${startSwap}
+      onAddCategory=${addCategoryToOutfit}
+      missingCategories=${missingCategoriesFor(selectedOutfit)}
+    />`;
+  } else if (screen === "favorites") {
+    screenEl = html`<${FavoritesScreen}
+      favorites=${favorites} loading=${favoritesLoading} error=${favoritesError}
+      onBack=${function () { setScreen("welcome"); }}
+      onDelete=${handleDeleteFavorite}
+      onSelect=${function (f) {
+        setViewingFavorite({
+          label: f.outfit_label,
+          number: "—",
+          items: f.items,
+          priceTotal: f.price_total,
+          currency: (f.items[0] && f.items[0].price_currency) || "EUR",
+          why: null,
+        });
+        setScreen("favorite-detail");
+      }}
+    />`;
+  } else if (screen === "favorite-detail" && viewingFavorite) {
+    screenEl = html`<${DetailScreen}
+      outfit=${viewingFavorite} photo=${null} lowConfidence=${false} alreadySaved=${true}
+      onBack=${function () { setScreen("favorites"); }}
+      onSwapItem=${startSwap}
+      onAddCategory=${addCategoryToOutfit}
+      missingCategories=${missingCategoriesFor(viewingFavorite)}
+    />`;
+  }
+
+  return html`
+    <div style=${{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <div style=${{ width: 390, height: 780, background: "#FAF6F2", borderRadius: 40, border: "10px solid #20201F", overflow: "hidden", position: "relative", boxShadow: "0 30px 60px rgba(32,26,25,0.25)" }}>
+        <div style=${{ height: "100%", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          ${screenEl}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(html`<${FitConnected} />`);
+</script>
+</body>
+</html>
