@@ -343,9 +343,21 @@ function UploadScreen(props) {
     <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
       <${TopBar} title="Add a photo" onBack=${props.onBack} step=${1} totalSteps=${3} />
       <div style=${{ padding: "8px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
-        <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5 }}>
-          Head to shoes, facing forward, arms relaxed at your sides.
-        </p>
+             <div style=${{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+          <svg width="52" height="96" viewBox="0 0 52 96" style=${{ flexShrink: 0 }}>
+            <rect x="1" y="1" width="50" height="94" rx="8" fill="#F0E1DA" stroke="#C9B8A6" stroke-width="1.5" />
+            <circle cx="26" cy="18" r="7" fill="#8A6F63" />
+            <line x1="26" y1="25" x2="26" y2="55" stroke="#8A6F63" stroke-width="4" stroke-linecap="round" />
+            <line x1="26" y1="30" x2="12" y2="50" stroke="#8A6F63" stroke-width="4" stroke-linecap="round" />
+            <line x1="26" y1="30" x2="40" y2="50" stroke="#8A6F63" stroke-width="4" stroke-linecap="round" />
+            <line x1="26" y1="55" x2="17" y2="88" stroke="#8A6F63" stroke-width="4" stroke-linecap="round" />
+            <line x1="26" y1="55" x2="35" y2="88" stroke="#8A6F63" stroke-width="4" stroke-linecap="round" />
+          </svg>
+          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, margin: 0 }}>
+            Head to shoes, facing forward, arms relaxed at your sides, plain background, even lighting.
+          </p>
+        </div>
+
         <div
           onClick=${function () { if (!props.analyzing && props.fileRef.current) props.fileRef.current.click(); }}
           style=${{ marginTop: 14, flex: 1, minHeight: 260, borderRadius: 20, border: props.photo ? "none" : "1.5px dashed #C9B8A6", background: props.photo ? "transparent" : "#F0E1DA", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", position: "relative" }}
