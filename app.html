@@ -10,15 +10,15 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400..600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
   * { box-sizing: border-box; }
-  body { margin: 0; background: #EDE6DE; font-family: 'Inter', sans-serif; }
+  body { margin: 0; background: #0c0a09; font-family: 'Inter', sans-serif; }
   @keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
 </style>
 </head>
 <body>
 <div id="root">
-  <div style="padding:40px; text-align:center; font-family: sans-serif; color:#8A8378;">Loading… if this stays here, scroll down for an error message.</div>
+  <div style="padding:40px; text-align:center; font-family: sans-serif; color:#8A7F72;">Loading… if this stays here, scroll down for an error message.</div>
 </div>
-<div id="error-display" style="display:none; padding: 20px; font-family: monospace; font-size: 13px; color: #8A3E2E; background: #F4E2DE; white-space: pre-wrap; word-break: break-word;"></div>
+<div id="error-display" style="display:none; padding: 20px; font-family: monospace; font-size: 13px; color: #E8A8A0; background: #2A1515; white-space: pre-wrap; word-break: break-word;"></div>
 
 <script>
   window.onerror = function (msg, url, line, col, error) {
@@ -84,15 +84,15 @@ const SEASONS = ["Spring", "Summer", "Fall", "Winter"];
 const CATEGORY_LABELS = { top: "Top", bottom: "Bottom", shoes: "Shoes", dress: "Dress" };
 
 const COLOR_HEX = {
-  charcoal: "#3B3A36", sand: "#C9B8A6", wine: "#7A2E3A", black: "#20201F",
-  white: "#F0E1DA", navy: "#2C3E50", beige: "#C9B8A6", grey: "#8A8378",
-  gray: "#8A8378", red: "#7A2E3A", blue: "#3E5C7A", green: "#5C7A3E",
+  charcoal: "#3B3A36", sand: "#C9B8A6", wine: "#7A2E3A", black: "#141210",
+  white: "#F0E1DA", navy: "#2C3E50", beige: "#C9B8A6", grey: "#8A7F72",
+  gray: "#8A7F72", red: "#7A2E3A", blue: "#3E5C7A", green: "#5C7A3E",
 };
 
 function colorToHex(colorName) {
-  if (!colorName) return "#8A8378";
+  if (!colorName) return "#8A7F72";
   const key = colorName.toLowerCase().trim();
-  return COLOR_HEX[key] || "#8A8378";
+  return COLOR_HEX[key] || "#8A7F72";
 }
 
 /* Calls the self-hosted FASHN VTON API with the user's photo, chaining
@@ -156,11 +156,11 @@ function TryOnPreview(props) {
   }, [photo, items]);
 
   if (!photo) {
-    return React.createElement("div", { style: { width: "100%", height: "100%", background: "#E3D5CC" } });
+    return React.createElement("div", { style: { width: "100%", height: "100%", background: "#211C19" } });
   }
 
   if (loading) {
-    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#E3D5CC", fontSize: 10, padding: 4, textAlign: "center", overflow: "hidden", fontFamily: "Inter, sans-serif", color: "#6B655C" } }, "Generating…");
+    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#211C19", fontSize: 10, padding: 4, textAlign: "center", overflow: "hidden", fontFamily: "Inter, sans-serif", color: "#B5A99C" } }, "Generating…");
   }
 
   if (resultUrl) {
@@ -168,7 +168,7 @@ function TryOnPreview(props) {
   }
 
   if (error) {
-    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#F4E2DE", color: "#8A3E2E", fontSize: 10, padding: 4, textAlign: "center", overflow: "hidden" } }, error);
+    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#2A1515", color: "#E8A8A0", fontSize: 10, padding: 4, textAlign: "center", overflow: "hidden" } }, error);
   }
 
   return React.createElement("img", { src: URL.createObjectURL(photo), alt: "You", style: { width: "100%", height: "100%", objectFit: "contain", display: "block" } });
@@ -188,7 +188,7 @@ function ListPreviewSwatch(props) {
 }
 
 function Spinner(props) {
-  const color = props.color || "#20201F";
+  const color = props.color || "#F3ECE2";
   const size = props.size || 28;
   return html`
     <svg viewBox="0 0 32 32" width=${size} height=${size} style=${{ animation: "spin .9s linear infinite" }}>
@@ -204,16 +204,16 @@ function TopBar(props) {
       <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button
           onClick=${props.onBack}
-          style=${{ visibility: props.onBack ? "visible" : "hidden", background: "none", border: "none", fontSize: 20, color: "#3B3A36", cursor: "pointer", padding: 0, width: 24 }}
+          style=${{ visibility: props.onBack ? "visible" : "hidden", background: "none", border: "none", fontSize: 20, color: "#F3ECE2", cursor: "pointer", padding: 0, width: 24 }}
         >←</button>
         ${props.step ? html`
-          <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#8A8378", letterSpacing: 1 }}>
+          <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#8A7F72", letterSpacing: 1 }}>
             ${props.step} / ${props.totalSteps}
           </div>` : null}
         <div style=${{ width: 24 }} />
       </div>
       ${props.title ? html`
-        <h1 style=${{ fontFamily: "Fraunces, serif", fontWeight: 500, fontSize: 26, color: "#20201F", marginTop: 10, marginBottom: 0, letterSpacing: -0.3 }}>
+        <h1 style=${{ fontFamily: "Fraunces, serif", fontWeight: 500, fontSize: 26, color: "#F3ECE2", marginTop: 10, marginBottom: 0, letterSpacing: -0.3 }}>
           ${props.title}
         </h1>` : null}
     </div>
@@ -225,7 +225,7 @@ function PrimaryButton(props) {
     <button
       onClick=${props.onClick}
       disabled=${props.disabled}
-      style=${{ width: "100%", padding: "16px", borderRadius: 14, border: "none", background: props.disabled ? "#D9CFC6" : "#20201F", color: props.disabled ? "#8A8378" : "#F0E1DA", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 15, cursor: props.disabled ? "default" : "pointer" }}
+      style=${{ width: "100%", padding: "16px", borderRadius: 2, border: "none", background: props.disabled ? "#2A2521" : "#C9A05C", color: props.disabled ? "#6B6259" : "#15110F", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: 0.8, textTransform: "none", cursor: props.disabled ? "default" : "pointer" }}
     >${props.children}</button>
   `;
 }
@@ -235,7 +235,7 @@ function SecondaryButton(props) {
     <button
       onClick=${props.onClick}
       disabled=${props.disabled}
-      style=${{ width: "100%", padding: "14px", borderRadius: 14, border: "1px solid #20201F", background: "transparent", color: "#20201F", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, cursor: props.disabled ? "default" : "pointer" }}
+      style=${{ width: "100%", padding: "14px", borderRadius: 14, border: "1px solid #F3ECE2", background: "transparent", color: "#F3ECE2", fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: 14, cursor: props.disabled ? "default" : "pointer" }}
     >${props.children}</button>
   `;
 }
@@ -244,7 +244,7 @@ function Chip(props) {
   return html`
     <button
       onClick=${props.onClick}
-      style=${{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, padding: "8px 14px", borderRadius: 999, border: props.active ? "1px solid #7A2E3A" : "1px solid #D9CFC6", background: props.active ? "#7A2E3A" : "transparent", color: props.active ? "#F0E1DA" : "#3B3A36", cursor: "pointer", whiteSpace: "nowrap" }}
+      style=${{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, padding: "8px 14px", borderRadius: 999, border: props.active ? "1px solid #C9A05C" : "1px solid #3A322C", background: props.active ? "#C9A05C" : "transparent", color: props.active ? "#15110F" : "#F3ECE2", cursor: "pointer", whiteSpace: "nowrap" }}
     >${props.children}</button>
   `;
 }
@@ -252,7 +252,7 @@ function Chip(props) {
 function Section(props) {
   return html`
     <div style=${{ marginBottom: 26 }}>
-      <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1.2, color: "#8A8378", marginBottom: 10, textTransform: "uppercase" }}>
+      <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1.2, color: "#8A7F72", marginBottom: 10, textTransform: "uppercase" }}>
         ${props.label}
       </div>
       ${props.children}
@@ -263,7 +263,7 @@ function Section(props) {
 function ErrorNote(props) {
   if (!props.message) return null;
   return html`
-    <div style=${{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "#F4E2DE", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#8A3E2E", lineHeight: 1.4 }}>
+    <div style=${{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: "#2A1515", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#E8A8A0", lineHeight: 1.4 }}>
       ${props.message}
     </div>
   `;
@@ -308,7 +308,7 @@ function currencyOf(items) {
 
 function Welcome(props) {
   return html`
-    <div style=${{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "50px 28px 32px", background: "linear-gradient(160deg, #7A2E3A 0%, #3B2024 100%)", color: "#F0E1DA" }}>
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "50px 28px 32px", background: "linear-gradient(160deg, #3B2024 0%, #0c0a09 100%)", color: "#F0E1DA" }}>
       <div>
         <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 3, opacity: 0.7 }}>FIT — LIVE</div>
         <h1 style=${{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", fontSize: 44, lineHeight: 1.05, margin: "18px 0 0" }}>
@@ -339,19 +339,19 @@ function UploadScreen(props) {
       <${TopBar} title="Add a photo" onBack=${props.onBack} step=${1} totalSteps=${3} />
       <div style=${{ padding: "8px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
         <div style=${{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-          <img src="./pose-guide.png" alt="Example pose" style=${{ width: 52, height: 78, objectFit: "cover", borderRadius: 8, flexShrink: 0, border: "1px solid #D9CFC6" }} />
-          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, margin: 0 }}>
+          <img src="./pose-guide.png" alt="Example pose" style=${{ width: 52, height: 78, objectFit: "cover", borderRadius: 8, flexShrink: 0, border: "1px solid #3A322C" }} />
+          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C", lineHeight: 1.5, margin: 0 }}>
             Like this: head to shoes, facing forward, arms relaxed at your sides, plain background, even lighting, fitted clothing.
           </p>
         </div>
         <div
           onClick=${function () { if (!props.analyzing && props.fileRef.current) props.fileRef.current.click(); }}
-          style=${{ marginTop: 14, flex: 1, minHeight: 260, borderRadius: 20, border: props.photo ? "none" : "1.5px dashed #C9B8A6", background: props.photo ? "transparent" : "#F0E1DA", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", position: "relative" }}
+          style=${{ marginTop: 14, flex: 1, minHeight: 260, borderRadius: 20, border: props.photo ? "none" : "1.5px dashed #3A322C", background: props.photo ? "transparent" : "#211C19", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", position: "relative" }}
         >
           ${props.photo ? html`
             <img src=${URL.createObjectURL(props.photo)} alt="You" style=${{ width: "100%", height: "100%", objectFit: "cover", filter: props.analyzing ? "brightness(0.5)" : "none" }} />
           ` : html`
-            <div style=${{ textAlign: "center", color: "#8A6F63" }}>
+            <div style=${{ textAlign: "center", color: "#B5A99C" }}>
               <div style=${{ fontSize: 32, marginBottom: 8 }}>＋</div>
               <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500 }}>Tap to upload</div>
             </div>
@@ -365,7 +365,7 @@ function UploadScreen(props) {
         </div>
         <input ref=${props.fileRef} type="file" accept="image/*" onChange=${handleFile} style=${{ display: "none" }} />
         <div style=${{ marginTop: 16 }}>
-          <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1, color: "#8A8378", marginBottom: 8, textTransform: "uppercase" }}>
+          <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1, color: "#8A7F72", marginBottom: 8, textTransform: "uppercase" }}>
             Your height (cm)
           </div>
           <input
@@ -373,7 +373,7 @@ function UploadScreen(props) {
             value=${props.height}
             onChange=${function (e) { props.setHeight(e.target.value); }}
             placeholder="e.g. 165"
-            style=${{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #D9CFC6", fontFamily: "Inter, sans-serif", fontSize: 15 }}
+            style=${{ width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #3A322C", background: "#211C19", color: "#F3ECE2", fontFamily: "Inter, sans-serif", fontSize: 15 }}
           />
         </div>
         <${ErrorNote} message=${props.analyzeError} />
@@ -393,7 +393,7 @@ function ProfileScreen(props) {
       <${TopBar} title="A few details" onBack=${props.onBack} step=${2} totalSteps=${3} />
       <div style=${{ padding: "8px 20px", flex: 1, overflowY: "auto" }}>
         ${props.bodyType ? html`
-          <div style=${{ marginBottom: 20, padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", fontFamily: "Inter, sans-serif", fontSize: 13, color: "#3B3A36" }}>
+          <div style=${{ marginBottom: 20, padding: "12px 14px", borderRadius: 12, background: "#211C19", fontFamily: "Inter, sans-serif", fontSize: 13, color: "#F3ECE2" }}>
             Estimated body type: <strong>${props.bodyType.body_type}</strong> (${Math.round(props.bodyType.body_type_confidence * 100)}% confidence)
           </div>
         ` : null}
@@ -417,7 +417,7 @@ function ProfileScreen(props) {
             value=${props.budget}
             onChange=${function (e) { props.setBudget(e.target.value); }}
             placeholder="e.g. 250"
-            style=${{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #D9CFC6", fontFamily: "Inter, sans-serif", fontSize: 15 }}
+            style=${{ width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #3A322C", background: "#211C19", color: "#F3ECE2", fontFamily: "Inter, sans-serif", fontSize: 15 }}
           />
         <//>
         <${ErrorNote} message=${props.loadError} />
@@ -433,7 +433,7 @@ function ProfileScreen(props) {
 
 function Generating() {
   return html`
-    <div style=${{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, background: "#20201F", color: "#F0E1DA" }}>
+    <div style=${{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, background: "#0c0a09", color: "#F0E1DA" }}>
       <${Spinner} color="#7C8C6E" size=${48} />
       <div style=${{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontSize: 20 }}>Styling your fit…</div>
       <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#B8AFA6" }}>querying live catalog</div>
@@ -454,7 +454,7 @@ function ResultsScreen(props) {
     return html`
       <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
         <${TopBar} title="No outfits found" onBack=${props.onBack} />
-        <div style=${{ padding: 20, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C" }}>
+        <div style=${{ padding: 20, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C" }}>
           The live catalog didn't have enough matching pieces for this combination. Try a different occasion/season.
         </div>
       </div>
@@ -466,22 +466,22 @@ function ResultsScreen(props) {
       <div style=${{ padding: "6px 20px 20px", display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
         ${props.outfits.map(function (o) {
           return html`
-            <div key=${o.label} onClick=${function () { props.onSelect(o); }} style=${{ display: "flex", gap: 12, borderRadius: 18, background: "#F0E1DA", padding: 14, cursor: "pointer" }}>
+            <div key=${o.label} onClick=${function () { props.onSelect(o); }} style=${{ display: "flex", gap: 12, borderRadius: 18, background: "#211C19", padding: 14, cursor: "pointer" }}>
               <div style=${{ width: 72, height: 96, borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>
                 <${TryOnPreview} photo=${props.photo} items=${o.items} lowConfidence=${props.lowConfidence} />
               </div>
               <div style=${{ flex: 1, minWidth: 0 }}>
                 <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1 }}>${o.number}</span>
-                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#3B3A36" }}>
+                  <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#B5A99C", letterSpacing: 1 }}>${o.number}</span>
+                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#F3ECE2" }}>
                     ${o.priceTotal.toFixed(2)} ${o.currency}
                   </span>
                 </div>
-                <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#20201F", marginTop: 2 }}>${o.label}</div>
-                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B655C", marginTop: 4, lineHeight: 1.4 }}>
+                <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#F3ECE2", marginTop: 2 }}>${o.label}</div>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#B5A99C", marginTop: 4, lineHeight: 1.4 }}>
                   ${o.items.map(function (i) { return i.name; }).join(" · ")}
                 </div>
-                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 10.5, color: "#8A6F63", marginTop: 4 }}>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 10.5, color: "#B5A99C", marginTop: 4 }}>
                   ${Array.from(new Set(o.items.map(function (i) { return i.retailer_id; }))).join(" · ")}
                 </div>
               </div>
@@ -506,25 +506,25 @@ function FavoritesScreen(props) {
         ` : null}
         <${ErrorNote} message=${props.error} />
         ${!props.loading && !props.error && props.favorites.length === 0 ? html`
-          <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", padding: "20px 0" }}>
+          <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C", padding: "20px 0" }}>
             No saved outfits yet — tap ♡ Save on any outfit you like.
           </div>
         ` : null}
         ${props.favorites.map(function (f) {
           return html`
-            <div key=${f.id} style=${{ borderRadius: 18, background: "#F0E1DA", padding: 14 }}>
+            <div key=${f.id} style=${{ borderRadius: 18, background: "#211C19", padding: 14 }}>
               <div onClick=${function () { props.onSelect(f); }} style=${{ cursor: "pointer" }}>
                 <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#20201F" }}>${f.outfit_label}</div>
-                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#3B3A36" }}>${f.price_total}</span>
+                  <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#F3ECE2" }}>${f.outfit_label}</div>
+                  <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#F3ECE2" }}>${f.price_total}</span>
                 </div>
-                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#6B655C", marginTop: 4 }}>
+                <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#B5A99C", marginTop: 4 }}>
                   ${f.items.map(function (i) { return i.name; }).join(" · ")}
                 </div>
               </div>
               <button
                 onClick=${function () { props.onDelete(f.id); }}
-                style=${{ marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A3E2E", background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}
+                style=${{ marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#E8A8A0", background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}
               >Remove</button>
             </div>
           `;
@@ -562,13 +562,13 @@ function CategoryBrowseScreen(props) {
         <div style=${{ display: "flex", flexDirection: "column", gap: 10 }}>
           ${products.map(function (p) {
             return html`
-              <div key=${p.id} onClick=${function () { props.onSelect(p); }} style=${{ display: "flex", gap: 12, alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", cursor: "pointer" }}>
+              <div key=${p.id} onClick=${function () { props.onSelect(p); }} style=${{ display: "flex", gap: 12, alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#211C19", cursor: "pointer" }}>
                 <div style=${{ width: 44, height: 44, borderRadius: 8, flexShrink: 0, overflow: "hidden", background: colorToHex(p.color) }}>
                   ${p.image_url ? html`<img src=${p.image_url} alt=${p.name} style=${{ width: "100%", height: "100%", objectFit: "cover" }} />` : null}
                 </div>
                 <div style=${{ flex: 1, minWidth: 0 }}>
-                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#20201F" }}>${p.name}</div>
-                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A6F63", marginTop: 2 }}>${p.retailer_id} · ${p.price_amount} ${p.price_currency}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#F3ECE2" }}>${p.name}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#B5A99C", marginTop: 2 }}>${p.retailer_id} · ${p.price_amount} ${p.price_currency}</div>
                 </div>
               </div>
             `;
@@ -610,41 +610,41 @@ function DetailScreen(props) {
         <div style=${{ borderRadius: 20, overflow: "hidden", height: 420 }}>
           <${TryOnPreview} photo=${props.photo} items=${outfit.items} lowConfidence=${props.lowConfidence} />
         </div>
-        <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#8A6F63", letterSpacing: 1, display: "block", marginTop: 16 }}>
+        <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#B5A99C", letterSpacing: 1, display: "block", marginTop: 16 }}>
           ${outfit.number} — ${outfit.label.toUpperCase()}
         </span>
         <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-          <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0", color: "#20201F" }}>${outfit.label} outfit</h2>
+          <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0", color: "#F3ECE2" }}>${outfit.label} outfit</h2>
           <button
             onClick=${handleSave}
             disabled=${saving || saved}
-            style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, padding: "8px 12px", borderRadius: 10, border: "1px solid #7A2E3A", background: saved ? "#7A2E3A" : "transparent", color: saved ? "#F0E1DA" : "#7A2E3A", cursor: saving || saved ? "default" : "pointer", whiteSpace: "nowrap" }}
+            style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, padding: "8px 12px", borderRadius: 10, border: "1px solid #C9A05C", background: saved ? "#C9A05C" : "transparent", color: saved ? "#15110F" : "#C9A05C", cursor: saving || saved ? "default" : "pointer", whiteSpace: "nowrap" }}
           >
             ${saved ? "♥ Saved" : saving ? "Saving…" : "♡ Save"}
           </button>
         </div>
         <${ErrorNote} message=${saveError} />
         ${outfit.why ? html`
-          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#6B655C", lineHeight: 1.5, marginTop: 4, marginBottom: 20 }}>
+          <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C", lineHeight: 1.5, marginTop: 4, marginBottom: 20 }}>
             ${outfit.why}
           </p>
         ` : null}
         <div style=${{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           ${outfit.items.map(function (it) {
             return html`
-              <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#F0E1DA", gap: 10 }}>
+              <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#211C19", gap: 10 }}>
                 <div onClick=${props.onSwapItem ? function () { props.onSwapItem(it); } : null} style=${{ minWidth: 0, cursor: props.onSwapItem ? "pointer" : "default" }}>
-                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#20201F" }}>
-                    ${it.name} ${props.onSwapItem ? html`<span style=${{ fontSize: 11, color: "#8A6F63", textDecoration: "underline", marginLeft: 6 }}>swap</span>` : null}
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#F3ECE2" }}>
+                    ${it.name} ${props.onSwapItem ? html`<span style=${{ fontSize: 11, color: "#B5A99C", textDecoration: "underline", marginLeft: 6 }}>swap</span>` : null}
                   </div>
-                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#8A6F63", marginTop: 2 }}>${it.category} · ${it.retailer_id}</div>
-                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#6B655C", marginTop: 4 }}>${it.price_amount} ${it.price_currency}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#B5A99C", marginTop: 2 }}>${it.category} · ${it.retailer_id}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#B5A99C", marginTop: 4 }}>${it.price_amount} ${it.price_currency}</div>
                 </div>
                 <a
                   href=${it.affiliate_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style=${{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: "#F0E1DA", background: "#20201F", padding: "8px 12px", borderRadius: 10, textDecoration: "none", whiteSpace: "nowrap" }}
+                  style=${{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: "#15110F", background: "#C9A05C", padding: "8px 12px", borderRadius: 2, textDecoration: "none", whiteSpace: "nowrap" }}
                 >Buy at ${it.retailer_id} ↗</a>
               </div>
             `;
@@ -652,7 +652,7 @@ function DetailScreen(props) {
         </div>
         ${props.onAddCategory && props.missingCategories.length > 0 ? html`
           <div style=${{ marginBottom: 20 }}>
-            <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1.2, color: "#8A8378", marginBottom: 10, textTransform: "uppercase" }}>
+            <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1.2, color: "#8A7F72", marginBottom: 10, textTransform: "uppercase" }}>
               Complete the look
             </div>
             <div style=${{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -912,7 +912,7 @@ function FitConnected() {
 
   return html`
     <div style=${{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
-      <div style=${{ width: 390, height: 780, background: "#FAF6F2", borderRadius: 40, border: "10px solid #20201F", overflow: "hidden", position: "relative", boxShadow: "0 30px 60px rgba(32,26,25,0.25)" }}>
+      <div style=${{ width: 390, height: 780, background: "#15110F", borderRadius: 40, border: "10px solid #0A0807", overflow: "hidden", position: "relative", boxShadow: "0 30px 60px rgba(0,0,0,0.5)" }}>
         <div style=${{ height: "100%", overflowY: "auto", display: "flex", flexDirection: "column" }}>
           ${screenEl}
         </div>
