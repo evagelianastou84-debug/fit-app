@@ -37,6 +37,247 @@ import htm from 'https://unpkg.com/htm?module';
 const html = htm.bind(React.createElement);
 const { useState, useRef, useEffect } = React;
 
+/* ---------- Languages (el / en / fr / es / de) ---------- */
+const LANGS = [
+  { code: "el", label: "Ελληνικά" },
+  { code: "en", label: "English" },
+  { code: "fr", label: "Français" },
+  { code: "es", label: "Español" },
+  { code: "de", label: "Deutsch" },
+];
+
+const I18N = {
+  en: {
+    welcome_t1: "Try it on,", welcome_t2: "before you buy it.",
+    welcome_p: "The first request may take up to a minute while the server wakes up.",
+    start: "Start", build_own: "Build your own outfit", favorites_link: "♡ My Favorites", privacy: "Privacy Policy",
+    add_photo: "Add a photo",
+    pose_hint: "Like this: head to shoes, facing forward, arms relaxed at your sides, plain background, even lighting, fitted clothing.",
+    tap_upload: "Tap to upload", analyzing_long: "analyzing (may take up to 60s)…",
+    height_label: "Your height (cm)", height_ph: "e.g. 165", analyzing: "Analyzing…", continue: "Continue",
+    photo_saved_note: "Your photo is saved on this device only.", use_other: "Upload a different photo", delete_photo: "Remove saved photo",
+    details: "A few details", est_body: "Estimated body type:", confidence: "confidence",
+    occasion: "Occasion", season: "Season", budget: "Budget (EUR)", budget_ph: "e.g. 250",
+    occ_Work: "Work", occ_Casual: "Casual", occ_Date: "Date", occ_Evening: "Evening",
+    sea_Spring: "Spring", sea_Summer: "Summer", sea_Fall: "Fall", sea_Winter: "Winter",
+    styling: "Styling your fit…", generate: "Generate outfits", querying: "querying live catalog",
+    went_wrong: "Something went wrong", no_outfits: "No outfits found",
+    no_outfits_p: "The live catalog didn't have enough matching pieces for this combination. Try a different occasion/season.",
+    your_outfits: "Your outfits", build_instead: "Build your own instead",
+    favorites: "Favorites", no_favs: "No saved outfits yet — tap ♡ Save on any outfit you like.", remove: "Remove",
+    pick_cat: "Pick: {cat}", skip: "Skip this piece",
+    waking: "the free server may be waking up, try again in a moment.",
+    save: "♡ Save", saved: "♥ Saved", saving: "Saving…", outfit_word: "{label} outfit",
+    lbl_safe: "Safe", lbl_balanced: "Balanced", lbl_statement: "Statement", lbl_custom: "Custom",
+    swap: "swap", buy_at: "Buy at {r}", complete: "Complete the look", add_cat: "+ Add {cat}",
+    generating: "Generating…", tryon_failed: "Try-on failed on {name}",
+    cat_top: "Top", cat_bottom: "Bottom", cat_shoes: "Shoes", cat_dress: "Dress",
+  },
+  el: {
+    welcome_t1: "Δοκίμασέ το,", welcome_t2: "πριν το αγοράσεις.",
+    welcome_p: "Το πρώτο αίτημα μπορεί να πάρει έως ένα λεπτό, όσο ξυπνά ο server.",
+    start: "Ξεκίνα", build_own: "Φτιάξε το δικό σου outfit", favorites_link: "♡ Τα αγαπημένα μου", privacy: "Πολιτική απορρήτου",
+    add_photo: "Πρόσθεσε φωτογραφία",
+    pose_hint: "Όπως εδώ: από το κεφάλι ως τα παπούτσια, μπροστά στην κάμερα, χέρια χαλαρά στα πλάγια, απλό φόντο, ομοιόμορφος φωτισμός, εφαρμοστά ρούχα.",
+    tap_upload: "Πάτα για ανέβασμα", analyzing_long: "ανάλυση (μπορεί να πάρει έως 60 δευτ.)…",
+    height_label: "Το ύψος σου (εκ.)", height_ph: "π.χ. 165", analyzing: "Ανάλυση…", continue: "Συνέχεια",
+    photo_saved_note: "Η φωτογραφία σου αποθηκεύεται μόνο σε αυτή τη συσκευή.", use_other: "Ανέβασε άλλη φωτογραφία", delete_photo: "Διαγραφή αποθηκευμένης φωτογραφίας",
+    details: "Λίγες λεπτομέρειες", est_body: "Εκτιμώμενος σωματότυπος:", confidence: "βεβαιότητα",
+    occasion: "Περίσταση", season: "Εποχή", budget: "Προϋπολογισμός (EUR)", budget_ph: "π.χ. 250",
+    occ_Work: "Δουλειά", occ_Casual: "Καθημερινό", occ_Date: "Ραντεβού", occ_Evening: "Βράδυ",
+    sea_Spring: "Άνοιξη", sea_Summer: "Καλοκαίρι", sea_Fall: "Φθινόπωρο", sea_Winter: "Χειμώνας",
+    styling: "Φτιάχνουμε το στυλ σου…", generate: "Δημιούργησε outfits", querying: "αναζήτηση στον ζωντανό κατάλογο",
+    went_wrong: "Κάτι πήγε στραβά", no_outfits: "Δεν βρέθηκαν outfits",
+    no_outfits_p: "Ο κατάλογος δεν είχε αρκετά κομμάτια για αυτόν τον συνδυασμό. Δοκίμασε άλλη περίσταση ή εποχή.",
+    your_outfits: "Τα outfits σου", build_instead: "Φτιάξε το δικό σου",
+    favorites: "Αγαπημένα", no_favs: "Δεν υπάρχουν αποθηκευμένα outfits — πάτα ♡ Αποθήκευση σε όποιο σου αρέσει.", remove: "Διαγραφή",
+    pick_cat: "Διάλεξε: {cat}", skip: "Παράλειψη αυτού του κομματιού",
+    waking: "ο δωρεάν server ξυπνά, δοκίμασε ξανά σε λίγο.",
+    save: "♡ Αποθήκευση", saved: "♥ Αποθηκεύτηκε", saving: "Αποθήκευση…", outfit_word: "{label} outfit",
+    lbl_safe: "Ασφαλές", lbl_balanced: "Ισορροπημένο", lbl_statement: "Εντυπωσιακό", lbl_custom: "Δικό σου",
+    swap: "αλλαγή", buy_at: "Αγορά στο {r}", complete: "Ολοκλήρωσε το look", add_cat: "+ Πρόσθεσε: {cat}",
+    generating: "Δημιουργία…", tryon_failed: "Το try-on απέτυχε για {name}",
+    cat_top: "Πάνω μέρος", cat_bottom: "Κάτω μέρος", cat_shoes: "Παπούτσια", cat_dress: "Φόρεμα",
+  },
+  fr: {
+    welcome_t1: "Essayez-le,", welcome_t2: "avant de l'acheter.",
+    welcome_p: "La première requête peut prendre jusqu'à une minute, le temps que le serveur se réveille.",
+    start: "Commencer", build_own: "Créez votre propre tenue", favorites_link: "♡ Mes favoris", privacy: "Politique de confidentialité",
+    add_photo: "Ajoutez une photo",
+    pose_hint: "Comme ceci : de la tête aux pieds, de face, bras relâchés le long du corps, fond uni, éclairage uniforme, vêtements ajustés.",
+    tap_upload: "Touchez pour importer", analyzing_long: "analyse (jusqu'à 60 s)…",
+    height_label: "Votre taille (cm)", height_ph: "ex. 165", analyzing: "Analyse…", continue: "Continuer",
+    photo_saved_note: "Votre photo est enregistrée uniquement sur cet appareil.", use_other: "Importer une autre photo", delete_photo: "Supprimer la photo enregistrée",
+    details: "Quelques détails", est_body: "Morphologie estimée :", confidence: "confiance",
+    occasion: "Occasion", season: "Saison", budget: "Budget (EUR)", budget_ph: "ex. 250",
+    occ_Work: "Travail", occ_Casual: "Décontracté", occ_Date: "Rendez-vous", occ_Evening: "Soirée",
+    sea_Spring: "Printemps", sea_Summer: "Été", sea_Fall: "Automne", sea_Winter: "Hiver",
+    styling: "Création de votre look…", generate: "Générer des tenues", querying: "recherche dans le catalogue en direct",
+    went_wrong: "Une erreur est survenue", no_outfits: "Aucune tenue trouvée",
+    no_outfits_p: "Le catalogue n'avait pas assez d'articles pour cette combinaison. Essayez une autre occasion ou saison.",
+    your_outfits: "Vos tenues", build_instead: "Créer la vôtre",
+    favorites: "Favoris", no_favs: "Aucune tenue enregistrée — touchez ♡ Enregistrer sur celle que vous aimez.", remove: "Supprimer",
+    pick_cat: "Choisir : {cat}", skip: "Passer cette pièce",
+    waking: "le serveur gratuit se réveille, réessayez dans un instant.",
+    save: "♡ Enregistrer", saved: "♥ Enregistré", saving: "Enregistrement…", outfit_word: "Tenue {label}",
+    lbl_safe: "Sûre", lbl_balanced: "Équilibrée", lbl_statement: "Audacieuse", lbl_custom: "Personnalisée",
+    swap: "changer", buy_at: "Acheter chez {r}", complete: "Complétez le look", add_cat: "+ Ajouter : {cat}",
+    generating: "Génération…", tryon_failed: "Échec de l'essayage pour {name}",
+    cat_top: "Haut", cat_bottom: "Bas", cat_shoes: "Chaussures", cat_dress: "Robe",
+  },
+  es: {
+    welcome_t1: "Pruébalo,", welcome_t2: "antes de comprarlo.",
+    welcome_p: "La primera solicitud puede tardar hasta un minuto mientras el servidor se activa.",
+    start: "Empezar", build_own: "Crea tu propio conjunto", favorites_link: "♡ Mis favoritos", privacy: "Política de privacidad",
+    add_photo: "Añade una foto",
+    pose_hint: "Así: de la cabeza a los pies, de frente, brazos relajados a los lados, fondo liso, iluminación uniforme, ropa ajustada.",
+    tap_upload: "Toca para subir", analyzing_long: "analizando (hasta 60 s)…",
+    height_label: "Tu estatura (cm)", height_ph: "p. ej. 165", analyzing: "Analizando…", continue: "Continuar",
+    photo_saved_note: "Tu foto se guarda solo en este dispositivo.", use_other: "Subir otra foto", delete_photo: "Eliminar foto guardada",
+    details: "Algunos detalles", est_body: "Tipo de cuerpo estimado:", confidence: "confianza",
+    occasion: "Ocasión", season: "Temporada", budget: "Presupuesto (EUR)", budget_ph: "p. ej. 250",
+    occ_Work: "Trabajo", occ_Casual: "Casual", occ_Date: "Cita", occ_Evening: "Noche",
+    sea_Spring: "Primavera", sea_Summer: "Verano", sea_Fall: "Otoño", sea_Winter: "Invierno",
+    styling: "Creando tu look…", generate: "Generar conjuntos", querying: "consultando el catálogo en vivo",
+    went_wrong: "Algo salió mal", no_outfits: "No se encontraron conjuntos",
+    no_outfits_p: "El catálogo no tenía suficientes prendas para esta combinación. Prueba otra ocasión o temporada.",
+    your_outfits: "Tus conjuntos", build_instead: "Crea el tuyo",
+    favorites: "Favoritos", no_favs: "Aún no hay conjuntos guardados — toca ♡ Guardar en el que te guste.", remove: "Eliminar",
+    pick_cat: "Elegir: {cat}", skip: "Omitir esta prenda",
+    waking: "el servidor gratuito se está activando, inténtalo de nuevo en un momento.",
+    save: "♡ Guardar", saved: "♥ Guardado", saving: "Guardando…", outfit_word: "Conjunto {label}",
+    lbl_safe: "Seguro", lbl_balanced: "Equilibrado", lbl_statement: "Llamativo", lbl_custom: "Personalizado",
+    swap: "cambiar", buy_at: "Comprar en {r}", complete: "Completa el look", add_cat: "+ Añadir: {cat}",
+    generating: "Generando…", tryon_failed: "Falló la prueba de {name}",
+    cat_top: "Parte de arriba", cat_bottom: "Parte de abajo", cat_shoes: "Zapatos", cat_dress: "Vestido",
+  },
+  de: {
+    welcome_t1: "Probiere es an,", welcome_t2: "bevor du es kaufst.",
+    welcome_p: "Die erste Anfrage kann bis zu einer Minute dauern, bis der Server aufgewacht ist.",
+    start: "Starten", build_own: "Eigenes Outfit zusammenstellen", favorites_link: "♡ Meine Favoriten", privacy: "Datenschutz",
+    add_photo: "Foto hinzufügen",
+    pose_hint: "So: Kopf bis Fuß, frontal, Arme locker an den Seiten, einfarbiger Hintergrund, gleichmäßiges Licht, enganliegende Kleidung.",
+    tap_upload: "Zum Hochladen tippen", analyzing_long: "Analyse (bis zu 60 s)…",
+    height_label: "Deine Größe (cm)", height_ph: "z. B. 165", analyzing: "Analyse…", continue: "Weiter",
+    photo_saved_note: "Dein Foto wird nur auf diesem Gerät gespeichert.", use_other: "Anderes Foto hochladen", delete_photo: "Gespeichertes Foto löschen",
+    details: "Ein paar Angaben", est_body: "Geschätzter Körpertyp:", confidence: "Sicherheit",
+    occasion: "Anlass", season: "Saison", budget: "Budget (EUR)", budget_ph: "z. B. 250",
+    occ_Work: "Arbeit", occ_Casual: "Freizeit", occ_Date: "Date", occ_Evening: "Abend",
+    sea_Spring: "Frühling", sea_Summer: "Sommer", sea_Fall: "Herbst", sea_Winter: "Winter",
+    styling: "Dein Look wird zusammengestellt…", generate: "Outfits erstellen", querying: "Live-Katalog wird abgefragt",
+    went_wrong: "Etwas ist schiefgelaufen", no_outfits: "Keine Outfits gefunden",
+    no_outfits_p: "Der Katalog hatte nicht genug passende Teile. Versuche einen anderen Anlass oder eine andere Saison.",
+    your_outfits: "Deine Outfits", build_instead: "Lieber selbst zusammenstellen",
+    favorites: "Favoriten", no_favs: "Noch keine gespeicherten Outfits – tippe auf ♡ Speichern.", remove: "Entfernen",
+    pick_cat: "Wählen: {cat}", skip: "Dieses Teil überspringen",
+    waking: "der kostenlose Server wacht gerade auf, versuche es gleich noch einmal.",
+    save: "♡ Speichern", saved: "♥ Gespeichert", saving: "Speichern…", outfit_word: "{label}-Outfit",
+    lbl_safe: "Sicher", lbl_balanced: "Ausgewogen", lbl_statement: "Statement", lbl_custom: "Eigenes",
+    swap: "tauschen", buy_at: "Kaufen bei {r}", complete: "Look vervollständigen", add_cat: "+ Hinzufügen: {cat}",
+    generating: "Wird erstellt…", tryon_failed: "Anprobe fehlgeschlagen: {name}",
+    cat_top: "Oberteil", cat_bottom: "Unterteil", cat_shoes: "Schuhe", cat_dress: "Kleid",
+  },
+};
+
+const LangContext = React.createContext("en");
+
+function makeT(lang) {
+  return function (key, vars) {
+    const dict = I18N[lang] || I18N.en;
+    let s = dict[key] !== undefined ? dict[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+    if (vars) {
+      for (const k in vars) s = s.split("{" + k + "}").join(String(vars[k]));
+    }
+    return s;
+  };
+}
+
+function useT() {
+  return makeT(React.useContext(LangContext));
+}
+
+function detectLang() {
+  try {
+    const stored = localStorage.getItem("fit_lang");
+    if (stored && I18N[stored]) return stored;
+  } catch (e) {}
+  const nav = ((navigator.language || "en") + "").slice(0, 2).toLowerCase();
+  return I18N[nav] ? nav : "en";
+}
+
+function outfitLabel(t, label) {
+  const k = "lbl_" + String(label || "").toLowerCase();
+  const v = t(k);
+  return v === k ? label : v;
+}
+
+function catName(t, cat) {
+  const k = "cat_" + cat;
+  const v = t(k);
+  return v === k ? cat : v;
+}
+
+/* ---------- Saved photo (stored on this device only) ---------- */
+const PHOTO_KEY = "fit_saved_photo";
+const HEIGHT_KEY = "fit_saved_height";
+const ANALYSIS_KEY = "fit_saved_analysis";
+
+function storeGet(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function storeSet(key, value) {
+  try { localStorage.setItem(key, value); return true; } catch (e) { return false; }
+}
+function storeRemove(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+
+function dataUrlToBlob(u) {
+  const parts = u.split(",");
+  const mime = (parts[0].match(/:(.*?);/) || [null, "image/jpeg"])[1];
+  const bin = atob(parts[1]);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+function blobToDataUrl(b) {
+  return new Promise(function (resolve, reject) {
+    const r = new FileReader();
+    r.onload = function () { resolve(r.result); };
+    r.onerror = reject;
+    r.readAsDataURL(b);
+  });
+}
+
+/* Shrinks big phone photos (keeps orientation) so they save, upload and
+   analyze faster. Falls back to the original file if anything fails. */
+function resizePhoto(file, maxSide) {
+  return new Promise(function (resolve) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = function () {
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const scale = Math.min(1, maxSide / Math.max(w, h));
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+      try {
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { resolve(b || file); }, "image/jpeg", 0.92);
+      } catch (e) {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      }
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 const TRYON_URL = "https://s3vlx0auiphz1y-8000.proxy.runpod.net";
 
 
@@ -110,6 +351,7 @@ const TRYON_CATEGORY_ORDER = ["dress", "top", "bottom"];
 function TryOnPreview(props) {
   const photo = props.photo;
   const items = props.items;
+  const t = useT();
 
   const [resultUrl, setResultUrl] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -137,7 +379,7 @@ function TryOnPreview(props) {
         form.append("garment_url", item.image_url);
         form.append("category", TRYON_CATEGORY_MAP[item.category]);
         const res = await fetch(`${TRYON_URL}/tryon`, { method: "POST", body: form });
-        if (!res.ok) throw new Error("Try-on failed on " + item.name);
+        if (!res.ok) throw new Error(t("tryon_failed", { name: item.name }));
         personBlob = await res.blob();
       }
       return personBlob;
@@ -162,7 +404,7 @@ function TryOnPreview(props) {
   }
 
   if (loading) {
-    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#211C19", fontSize: 10, padding: 4, textAlign: "center", overflow: "hidden", fontFamily: "Inter, sans-serif", color: "#B5A99C" } }, "Generating…");
+    return React.createElement("div", { style: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#211C19", fontSize: 10, padding: 4, textAlign: "center", overflow: "hidden", fontFamily: "Inter, sans-serif", color: "#B5A99C" } }, t("generating"));
   }
 
   if (resultUrl) {
@@ -273,7 +515,7 @@ function ErrorNote(props) {
 
 async function callFitService(photoFile, heightCm) {
   const form = new FormData();
-  form.append("photo", photoFile);
+  form.append("photo", photoFile, "photo.jpg");
   form.append("height_cm", String(heightCm));
   const res = await fetch(FIT_URL + "/analyze-photo", { method: "POST", body: form });
   if (!res.ok) throw new Error("Fit Service error (" + res.status + ")");
@@ -309,41 +551,49 @@ function currencyOf(items) {
 }
 
 function Welcome(props) {
+  const t = useT();
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "50px 28px 32px", background: "linear-gradient(160deg, #3B2024 0%, #0c0a09 100%)", color: "#F0E1DA" }}>
       <div>
         <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 3, opacity: 0.7 }}>FIT — LIVE</div>
+        <div style=${{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14 }}>
+          ${LANGS.map(function (l) {
+            return html`<${Chip} key=${l.code} active=${props.lang === l.code} onClick=${function () { props.setLang(l.code); }}>${l.label}<//>`;
+          })}
+        </div>
         <h1 style=${{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", fontSize: 44, lineHeight: 1.05, margin: "18px 0 0" }}>
-          Try it on,<br/>before you buy it.
+          ${t("welcome_t1")}<br/>${t("welcome_t2")}
         </h1>
         <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 14, lineHeight: 1.6, opacity: 0.85, marginTop: 18, maxWidth: 270 }}>
-          Connected to the real Fit and Catalog services. First request may take up to a minute while the free server wakes up.
+          ${t("welcome_p")}
         </p>
       </div>
       <div>
-        <${PrimaryButton} onClick=${props.onStart}>Start<//>
-        <a href="#" onClick=${function (e) { e.preventDefault(); props.onBuildOwn(); }} style=${{ display: "block", textAlign: "center", marginTop: 14, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#F0E1DA", opacity: 0.85, textDecoration: "underline" }}>Build your own outfit</a>
-        <a href="#" onClick=${function (e) { e.preventDefault(); props.onViewFavorites(); }} style=${{ display: "block", textAlign: "center", marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#F0E1DA", opacity: 0.85, textDecoration: "underline" }}>♡ My Favorites</a>
-        <a href="./privacy.html" style=${{ display: "block", textAlign: "center", marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 12, color: "#F0E1DA", opacity: 0.7, textDecoration: "underline" }}>Privacy Policy</a>
+        <${PrimaryButton} onClick=${props.onStart}>${t("start")}<//>
+        <a href="#" onClick=${function (e) { e.preventDefault(); props.onBuildOwn(); }} style=${{ display: "block", textAlign: "center", marginTop: 14, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#F0E1DA", opacity: 0.85, textDecoration: "underline" }}>${t("build_own")}</a>
+        <a href="#" onClick=${function (e) { e.preventDefault(); props.onViewFavorites(); }} style=${{ display: "block", textAlign: "center", marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "#F0E1DA", opacity: 0.85, textDecoration: "underline" }}>${t("favorites_link")}</a>
+        <a href="./privacy.html" style=${{ display: "block", textAlign: "center", marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 12, color: "#F0E1DA", opacity: 0.7, textDecoration: "underline" }}>${t("privacy")}</a>
       </div>
     </div>
   `;
 }
 
 function UploadScreen(props) {
+  const t = useT();
   const handleFile = function (e) {
     const file = e.target.files && e.target.files[0];
-    if (file) props.setPhoto(file);
+    if (file) props.onPickPhoto(file);
+    e.target.value = "";
   };
 
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <${TopBar} title="Add a photo" onBack=${props.onBack} step=${1} totalSteps=${3} />
+      <${TopBar} title=${t("add_photo")} onBack=${props.onBack} step=${1} totalSteps=${3} />
       <div style=${{ padding: "8px 20px", flex: 1, display: "flex", flexDirection: "column" }}>
         <div style=${{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
           <img src="./pose-guide.png" alt="Example pose" style=${{ width: 52, height: 78, objectFit: "cover", borderRadius: 8, flexShrink: 0, border: "1px solid #3A322C" }} />
           <p style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C", lineHeight: 1.5, margin: 0 }}>
-            Like this: head to shoes, facing forward, arms relaxed at your sides, plain background, even lighting, fitted clothing.
+            ${t("pose_hint")}
           </p>
         </div>
         <div
@@ -355,26 +605,35 @@ function UploadScreen(props) {
           ` : html`
             <div style=${{ textAlign: "center", color: "#B5A99C" }}>
               <div style=${{ fontSize: 32, marginBottom: 8 }}>＋</div>
-              <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500 }}>Tap to upload</div>
+              <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500 }}>${t("tap_upload")}</div>
             </div>
           `}
           ${props.analyzing ? html`
             <div style=${{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
               <${Spinner} color="#F0E1DA" />
-              <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#F0E1DA" }}>analyzing (may take up to 60s)…</span>
+              <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#F0E1DA" }}>${t("analyzing_long")}</span>
             </div>
           ` : null}
         </div>
         <input ref=${props.fileRef} type="file" accept="image/*" onChange=${handleFile} style=${{ display: "none" }} />
+        ${props.photoSaved && props.photo ? html`
+          <div style=${{ marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 12, color: "#8A7F72", lineHeight: 1.5 }}>
+            <div>${t("photo_saved_note")}</div>
+            <div style=${{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
+              <a href="#" onClick=${function (e) { e.preventDefault(); if (props.fileRef.current) props.fileRef.current.click(); }} style=${{ color: "#C9A05C", textDecoration: "underline" }}>${t("use_other")}</a>
+              <a href="#" onClick=${function (e) { e.preventDefault(); props.onDeletePhoto(); }} style=${{ color: "#B5A99C", textDecoration: "underline" }}>${t("delete_photo")}</a>
+            </div>
+          </div>
+        ` : null}
         <div style=${{ marginTop: 16 }}>
           <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1, color: "#8A7F72", marginBottom: 8, textTransform: "uppercase" }}>
-            Your height (cm)
+            ${t("height_label")}
           </div>
           <input
             type="number"
             value=${props.height}
             onChange=${function (e) { props.setHeight(e.target.value); }}
-            placeholder="e.g. 165"
+            placeholder=${t("height_ph")}
             style=${{ width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #3A322C", background: "#211C19", color: "#F3ECE2", fontFamily: "Inter, sans-serif", fontSize: 15 }}
           />
         </div>
@@ -382,7 +641,7 @@ function UploadScreen(props) {
       </div>
       <div style=${{ padding: 20 }}>
         <${PrimaryButton} onClick=${props.onNext} disabled=${!props.photo || !props.height || props.analyzing}>
-          ${props.analyzing ? "Analyzing…" : "Continue"}
+          ${props.analyzing ? t("analyzing") : t("continue")}
         <//>
       </div>
     </div>
@@ -390,35 +649,36 @@ function UploadScreen(props) {
 }
 
 function ProfileScreen(props) {
+  const t = useT();
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <${TopBar} title="A few details" onBack=${props.onBack} step=${2} totalSteps=${3} />
+      <${TopBar} title=${t("details")} onBack=${props.onBack} step=${2} totalSteps=${3} />
       <div style=${{ padding: "8px 20px", flex: 1, overflowY: "auto" }}>
         ${props.bodyType ? html`
           <div style=${{ marginBottom: 20, padding: "12px 14px", borderRadius: 12, background: "#211C19", fontFamily: "Inter, sans-serif", fontSize: 13, color: "#F3ECE2" }}>
-            Estimated body type: <strong>${props.bodyType.body_type}</strong> (${Math.round(props.bodyType.body_type_confidence * 100)}% confidence)
+            ${t("est_body")} <strong>${props.bodyType.body_type}</strong> (${Math.round(props.bodyType.body_type_confidence * 100)}% ${t("confidence")})
           </div>
         ` : null}
-        <${Section} label="Occasion">
+        <${Section} label=${t("occasion")}>
           <div style=${{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             ${OCCASIONS.map(function (o) {
-              return html`<${Chip} key=${o} active=${props.occasion === o} onClick=${function () { props.setOccasion(o); }}>${o}<//>`;
+              return html`<${Chip} key=${o} active=${props.occasion === o} onClick=${function () { props.setOccasion(o); }}>${t("occ_" + o)}<//>`;
             })}
           </div>
         <//>
-        <${Section} label="Season">
+        <${Section} label=${t("season")}>
           <div style=${{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             ${SEASONS.map(function (s) {
-              return html`<${Chip} key=${s} active=${props.season === s} onClick=${function () { props.setSeason(s); }}>${s}<//>`;
+              return html`<${Chip} key=${s} active=${props.season === s} onClick=${function () { props.setSeason(s); }}>${t("sea_" + s)}<//>`;
             })}
           </div>
         <//>
-        <${Section} label="Budget (EUR)">
+        <${Section} label=${t("budget")}>
           <input
             type="number"
             value=${props.budget}
             onChange=${function (e) { props.setBudget(e.target.value); }}
-            placeholder="e.g. 250"
+            placeholder=${t("budget_ph")}
             style=${{ width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #3A322C", background: "#211C19", color: "#F3ECE2", fontFamily: "Inter, sans-serif", fontSize: 15 }}
           />
         <//>
@@ -426,7 +686,7 @@ function ProfileScreen(props) {
       </div>
       <div style=${{ padding: 20 }}>
         <${PrimaryButton} onClick=${props.onNext} disabled=${props.loading}>
-          ${props.loading ? "Styling your fit…" : "Generate outfits"}
+          ${props.loading ? t("styling") : t("generate")}
         <//>
       </div>
     </div>
@@ -434,20 +694,22 @@ function ProfileScreen(props) {
 }
 
 function Generating() {
+  const t = useT();
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, background: "#0c0a09", color: "#F0E1DA" }}>
       <${Spinner} color="#7C8C6E" size=${48} />
-      <div style=${{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontSize: 20 }}>Styling your fit…</div>
-      <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#B8AFA6" }}>querying live catalog</div>
+      <div style=${{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontSize: 20 }}>${t("styling")}</div>
+      <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: "#B8AFA6" }}>${t("querying")}</div>
     </div>
   `;
 }
 
 function ResultsScreen(props) {
+  const t = useT();
   if (props.error) {
     return html`
       <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <${TopBar} title="Something went wrong" onBack=${props.onBack} />
+        <${TopBar} title=${t("went_wrong")} onBack=${props.onBack} />
         <div style=${{ padding: 20 }}><${ErrorNote} message=${props.error} /></div>
       </div>
     `;
@@ -455,16 +717,16 @@ function ResultsScreen(props) {
   if (props.outfits.length === 0) {
     return html`
       <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <${TopBar} title="No outfits found" onBack=${props.onBack} />
+        <${TopBar} title=${t("no_outfits")} onBack=${props.onBack} />
         <div style=${{ padding: 20, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C" }}>
-          The live catalog didn't have enough matching pieces for this combination. Try a different occasion/season.
+          ${t("no_outfits_p")}
         </div>
       </div>
     `;
   }
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <${TopBar} title="Your outfits" onBack=${props.onBack} step=${3} totalSteps=${3} />
+      <${TopBar} title=${t("your_outfits")} onBack=${props.onBack} step=${3} totalSteps=${3} />
       <div style=${{ padding: "6px 20px 20px", display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
         ${props.outfits.map(function (o) {
           return html`
@@ -479,7 +741,7 @@ function ResultsScreen(props) {
                     ${o.priceTotal.toFixed(2)} ${o.currency}
                   </span>
                 </div>
-                <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#F3ECE2", marginTop: 2 }}>${o.label}</div>
+                <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#F3ECE2", marginTop: 2 }}>${outfitLabel(t, o.label)}</div>
                 <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#B5A99C", marginTop: 4, lineHeight: 1.4 }}>
                   ${o.items.map(function (i) { return i.name; }).join(" · ")}
                 </div>
@@ -492,16 +754,17 @@ function ResultsScreen(props) {
         })}
       </div>
       <div style=${{ padding: "0 20px 20px" }}>
-        <${SecondaryButton} onClick=${props.onBuildOwn}>Build your own instead<//>
+        <${SecondaryButton} onClick=${props.onBuildOwn}>${t("build_instead")}<//>
       </div>
     </div>
   `;
 }
 
 function FavoritesScreen(props) {
+  const t = useT();
   return html`
     <div style=${{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <${TopBar} title="Favorites" onBack=${props.onBack} />
+      <${TopBar} title=${t("favorites")} onBack=${props.onBack} />
       <div style=${{ padding: "6px 20px 20px", flex: 1, display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
         ${props.loading ? html`
           <div style=${{ display: "flex", justifyContent: "center", padding: 40 }}><${Spinner} /></div>
@@ -509,7 +772,7 @@ function FavoritesScreen(props) {
         <${ErrorNote} message=${props.error} />
         ${!props.loading && !props.error && props.favorites.length === 0 ? html`
           <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "#B5A99C", padding: "20px 0" }}>
-            No saved outfits yet — tap ♡ Save on any outfit you like.
+            ${t("no_favs")}
           </div>
         ` : null}
         ${props.favorites.map(function (f) {
@@ -517,7 +780,7 @@ function FavoritesScreen(props) {
             <div key=${f.id} style=${{ borderRadius: 18, background: "#211C19", padding: 14 }}>
               <div onClick=${function () { props.onSelect(f); }} style=${{ cursor: "pointer" }}>
                 <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                  <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#F3ECE2" }}>${f.outfit_label}</div>
+                  <div style=${{ fontFamily: "Fraunces, serif", fontSize: 19, color: "#F3ECE2" }}>${outfitLabel(t, f.outfit_label)}</div>
                   <span style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, color: "#F3ECE2" }}>${f.price_total}</span>
                 </div>
                 <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, color: "#B5A99C", marginTop: 4 }}>
@@ -527,7 +790,7 @@ function FavoritesScreen(props) {
               <button
                 onClick=${function () { props.onDelete(f.id); }}
                 style=${{ marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#E8A8A0", background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline" }}
-              >Remove</button>
+              >${t("remove")}</button>
             </div>
           `;
         })}
@@ -540,6 +803,7 @@ function FavoritesScreen(props) {
    used both for "build your own outfit" and for swapping a single
    piece inside an existing outfit. */
 function CategoryBrowseScreen(props) {
+  const t = useT();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -550,7 +814,7 @@ function CategoryBrowseScreen(props) {
     setError(null);
     fetchCatalogProducts(null, null, props.category)
       .then(function (data) { if (!cancelled) setProducts(data.products || []); })
-      .catch(function (err) { if (!cancelled) setError(err.message + " — the free server may be waking up, try again in a moment."); })
+      .catch(function (err) { if (!cancelled) setError(err.message + " — " + t("waking")); })
       .finally(function () { if (!cancelled) setLoading(false); });
     return function () { cancelled = true; };
   }, [props.category]);
@@ -579,7 +843,7 @@ function CategoryBrowseScreen(props) {
       </div>
       ${props.onSkip ? html`
         <div style=${{ padding: "0 20px 20px" }}>
-          <${SecondaryButton} onClick=${props.onSkip}>Skip this piece<//>
+          <${SecondaryButton} onClick=${props.onSkip}>${t("skip")}<//>
         </div>
       ` : null}
     </div>
@@ -588,6 +852,7 @@ function CategoryBrowseScreen(props) {
 
 function DetailScreen(props) {
   const outfit = props.outfit;
+  const t = useT();
   const [saved, setSaved] = useState(!!props.alreadySaved);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -613,16 +878,16 @@ function DetailScreen(props) {
           <${TryOnPreview} photo=${props.photo} items=${outfit.items} lowConfidence=${props.lowConfidence} />
         </div>
         <span style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: "#B5A99C", letterSpacing: 1, display: "block", marginTop: 16 }}>
-          ${outfit.number} — ${outfit.label.toUpperCase()}
+          ${outfit.number} — ${outfitLabel(t, outfit.label).toUpperCase()}
         </span>
         <div style=${{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-          <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0", color: "#F3ECE2" }}>${outfit.label} outfit</h2>
+          <h2 style=${{ fontFamily: "Fraunces, serif", fontSize: 24, margin: "4px 0", color: "#F3ECE2" }}>${t("outfit_word", { label: outfitLabel(t, outfit.label) })}</h2>
           <button
             onClick=${handleSave}
             disabled=${saving || saved}
             style=${{ fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, padding: "8px 12px", borderRadius: 10, border: "1px solid #C9A05C", background: saved ? "#C9A05C" : "transparent", color: saved ? "#15110F" : "#C9A05C", cursor: saving || saved ? "default" : "pointer", whiteSpace: "nowrap" }}
           >
-            ${saved ? "♥ Saved" : saving ? "Saving…" : "♡ Save"}
+            ${saved ? t("saved") : saving ? t("saving") : t("save")}
           </button>
         </div>
         <${ErrorNote} message=${saveError} />
@@ -637,9 +902,9 @@ function DetailScreen(props) {
               <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 12, background: "#211C19", gap: 10 }}>
                 <div onClick=${props.onSwapItem ? function () { props.onSwapItem(it); } : null} style=${{ minWidth: 0, cursor: props.onSwapItem ? "pointer" : "default" }}>
                   <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 500, color: "#F3ECE2" }}>
-                    ${it.name} ${props.onSwapItem ? html`<span style=${{ fontSize: 11, color: "#B5A99C", textDecoration: "underline", marginLeft: 6 }}>swap</span>` : null}
+                    ${it.name} ${props.onSwapItem ? html`<span style=${{ fontSize: 11, color: "#B5A99C", textDecoration: "underline", marginLeft: 6 }}>${t("swap")}</span>` : null}
                   </div>
-                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#B5A99C", marginTop: 2 }}>${it.category} · ${it.retailer_id}</div>
+                  <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#B5A99C", marginTop: 2 }}>${catName(t, it.category)} · ${it.retailer_id}</div>
                   <div style=${{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: "#B5A99C", marginTop: 4 }}>${it.price_amount} ${it.price_currency}</div>
                 </div>
                 <a
@@ -647,7 +912,7 @@ function DetailScreen(props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   style=${{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: "#15110F", background: "#C9A05C", padding: "8px 12px", borderRadius: 2, textDecoration: "none", whiteSpace: "nowrap" }}
-                >Buy at ${it.retailer_id} ↗</a>
+                >${t("buy_at", { r: it.retailer_id })} ↗</a>
               </div>
             `;
           })}
@@ -655,11 +920,11 @@ function DetailScreen(props) {
         ${props.onAddCategory && props.missingCategories.length > 0 ? html`
           <div style=${{ marginBottom: 20 }}>
             <div style=${{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11, letterSpacing: 1.2, color: "#8A7F72", marginBottom: 10, textTransform: "uppercase" }}>
-              Complete the look
+              ${t("complete")}
             </div>
             <div style=${{ display: "flex", flexDirection: "column", gap: 8 }}>
               ${props.missingCategories.map(function (cat) {
-                return html`<${SecondaryButton} key=${cat} onClick=${function () { props.onAddCategory(cat); }}>+ Add ${CATEGORY_LABELS[cat] || cat}<//>`;
+                return html`<${SecondaryButton} key=${cat} onClick=${function () { props.onAddCategory(cat); }}>${t("add_cat", { cat: catName(t, cat) })}<//>`;
               })}
             </div>
           </div>
@@ -671,7 +936,15 @@ function DetailScreen(props) {
 
 function FitConnected() {
   const [screen, setScreen] = useState("welcome");
+  const [lang, setLangState] = useState(detectLang());
+  const t = makeT(lang);
+  const setLang = function (l) {
+    setLangState(l);
+    storeSet("fit_lang", l);
+  };
   const [photo, setPhoto] = useState(null);
+  const [photoSaved, setPhotoSaved] = useState(false);
+  const [savedAnalysis, setSavedAnalysis] = useState(null);
   const [height, setHeight] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState(null);
@@ -701,6 +974,46 @@ function FitConnected() {
 
   const fileRef = useRef(null);
 
+  // Load the saved photo (and last body analysis) from this device, if any.
+  useEffect(function () {
+    const url = storeGet(PHOTO_KEY);
+    if (!url) return;
+    try {
+      setPhoto(dataUrlToBlob(url));
+      setPhotoSaved(true);
+      const h = storeGet(HEIGHT_KEY);
+      if (h) setHeight(h);
+      const a = storeGet(ANALYSIS_KEY);
+      if (a) setSavedAnalysis(JSON.parse(a));
+    } catch (e) {
+      storeRemove(PHOTO_KEY);
+      storeRemove(ANALYSIS_KEY);
+    }
+  }, []);
+
+  const handlePickPhoto = async function (file) {
+    const small = await resizePhoto(file, 1280);
+    setPhoto(small);
+    setAnalyzeError(null);
+    setSavedAnalysis(null);
+    storeRemove(ANALYSIS_KEY);
+    let ok = false;
+    try {
+      ok = storeSet(PHOTO_KEY, await blobToDataUrl(small));
+    } catch (e) {}
+    setPhotoSaved(ok);
+  };
+
+  const handleDeletePhoto = function () {
+    storeRemove(PHOTO_KEY);
+    storeRemove(ANALYSIS_KEY);
+    storeRemove(HEIGHT_KEY);
+    setPhoto(null);
+    setPhotoSaved(false);
+    setSavedAnalysis(null);
+    setBodyTypeResult(null);
+  };
+
   const loadFavorites = async function () {
     setFavoritesLoading(true);
     setFavoritesError(null);
@@ -708,7 +1021,7 @@ function FitConnected() {
       const data = await fetchFavorites();
       setFavorites(data.favorites || []);
     } catch (err) {
-      setFavoritesError(err.message + " — the free server may be waking up, try again in a moment.");
+      setFavoritesError(err.message + " — " + t("waking"));
     } finally {
       setFavoritesLoading(false);
     }
@@ -732,6 +1045,11 @@ function FitConnected() {
       setScreen("build-browse");
       return;
     }
+    if (photoSaved && savedAnalysis && String(savedAnalysis.height) === String(height) && savedAnalysis.result) {
+      setBodyTypeResult(savedAnalysis.result);
+      setScreen("profile");
+      return;
+    }
     setAnalyzing(true);
     setAnalyzeError(null);
     try {
@@ -741,9 +1059,15 @@ function FitConnected() {
         return;
       }
       setBodyTypeResult(result);
+      if (photoSaved) {
+        storeSet(HEIGHT_KEY, String(height));
+        const entry = { height: String(height), result: result };
+        storeSet(ANALYSIS_KEY, JSON.stringify(entry));
+        setSavedAnalysis(entry);
+      }
       setScreen("profile");
     } catch (err) {
-      setAnalyzeError(err.message + " — the free server may be waking up, try again in a moment.");
+      setAnalyzeError(err.message + " — " + t("waking"));
     } finally {
       setAnalyzing(false);
     }
@@ -758,7 +1082,7 @@ function FitConnected() {
       setOutfits(data.outfits || []);
       setScreen("results");
     } catch (err) {
-      setCatalogError(err.message + " — the free server may be waking up, try again in a moment.");
+      setCatalogError(err.message + " — " + t("waking"));
       setScreen("results");
     } finally {
       setCatalogLoading(false);
@@ -838,10 +1162,10 @@ function FitConnected() {
 
   let screenEl = null;
   if (screen === "welcome") {
-    screenEl = html`<${Welcome} onStart=${function () { setScreen("upload"); }} onBuildOwn=${startBuildOwn} onViewFavorites=${function () { setScreen("favorites"); loadFavorites(); }} />`;
+    screenEl = html`<${Welcome} lang=${lang} setLang=${setLang} onStart=${function () { setScreen("upload"); }} onBuildOwn=${startBuildOwn} onViewFavorites=${function () { setScreen("favorites"); loadFavorites(); }} />`;
   } else if (screen === "upload") {
     screenEl = html`<${UploadScreen}
-      photo=${photo} setPhoto=${setPhoto} height=${height} setHeight=${setHeight}
+      photo=${photo} onPickPhoto=${handlePickPhoto} photoSaved=${photoSaved} onDeletePhoto=${handleDeletePhoto} height=${height} setHeight=${setHeight}
       onBack=${function () { setScreen("welcome"); }} onNext=${analyzePhoto}
       analyzing=${analyzing} analyzeError=${analyzeError} fileRef=${fileRef}
     />`;
@@ -864,7 +1188,7 @@ function FitConnected() {
   } else if (screen === "build-browse") {
     screenEl = html`<${CategoryBrowseScreen}
       category=${browseCategory}
-      title=${"Pick a " + (CATEGORY_LABELS[browseCategory] || browseCategory).toLowerCase()}
+      title=${t("pick_cat", { cat: catName(t, browseCategory) })}
       step=${browseStep + 1} totalSteps=${BUILD_ORDER.length}
       onBack=${function () { setScreen(photo ? "results" : "welcome"); }}
       onSelect=${handleBuildPick}
@@ -873,7 +1197,7 @@ function FitConnected() {
   } else if (screen === "swap-browse" && swapTarget) {
     screenEl = html`<${CategoryBrowseScreen}
       category=${swapTarget.category}
-      title=${"Choose a " + (CATEGORY_LABELS[swapTarget.category] || swapTarget.category).toLowerCase()}
+      title=${t("pick_cat", { cat: catName(t, swapTarget.category) })}
       onBack=${function () { setScreen(swapTarget.forFavorite ? "favorite-detail" : "detail"); setSwapTarget(null); }}
       onSelect=${handleSwapPick}
     />`;
@@ -913,6 +1237,7 @@ function FitConnected() {
   }
 
   return html`
+    <${LangContext.Provider} value=${lang}>
     <div style=${{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
       <div style=${{ width: 390, height: 780, background: "#15110F", borderRadius: 40, border: "10px solid #0A0807", overflow: "hidden", position: "relative", boxShadow: "0 30px 60px rgba(0,0,0,0.5)" }}>
         <div style=${{ height: "100%", overflowY: "auto", display: "flex", flexDirection: "column" }}>
@@ -920,6 +1245,7 @@ function FitConnected() {
         </div>
       </div>
     </div>
+    <//>
   `;
 }
 
